@@ -25,13 +25,12 @@ flowchart LR
   FE -->|REST /api/v1| API[NestJS API]
   FE -->|REST /chat| AI[FastAPI + LangChain]
   AI -->|HTTPS| LLM[Ollama Cloud · gemma4:31b]
-  AI -->|MCP + Bearer| MCP1[FastMCP dominio]
+  AI -->|MCP + Bearer| MCP1[FastMCP propio]
   MCP1 -->|REST + Bearer| API
-  AI -.->|MCP + Bearer| MCP2[FastMCP externo]
   API -->|TypeORM| DB[(PostgreSQL 18)]
 ```
 
-La conexión con el servidor MCP externo se muestra punteada porque el requisito exige al menos un servidor externo, pero su consumo efectivo en tiempo de ejecución del asistente debe confirmarse en la PoC correspondiente.
+El servidor MCP propio participa en la ejecución del chatbot. Los servidores MCP externos son **Context7 y Playwright**, integrados en OpenCode; se usan como herramientas de desarrollo y cumplen el requisito académico sin formar parte de la cadena runtime del asistente.
 
 ## 4. Componentes
 
@@ -41,8 +40,8 @@ La conexión con el servidor MCP externo se muestra punteada porque el requisito
 | NestJS API | Autenticación, autorización, validación, reglas, estados, matching y persistencia | Delegar reglas al asistente |
 | FastAPI | Endpoint `/chat`, sesión conversacional, verificación del token, orquestación LangChain | Acceder a PostgreSQL o duplicar validaciones de dominio |
 | LangChain | Construcción del agente, invocación del modelo y uso de herramientas MCP | Persistir el dominio o confiar en identificadores enviados por el modelo |
-| FastMCP interno | Exponer herramientas de dominio que llaman a NestJS con el token del usuario | Acceder a la base de datos o reimplementar reglas |
-| FastMCP externo | Aportar capacidades auxiliares al asistente | Recibir secretos del dominio o saltarse la autenticación |
+| FastMCP propio | Exponer herramientas de dominio que llaman a NestJS con el token del usuario | Acceder a la base de datos o reimplementar reglas |
+| Context7 / Playwright (OpenCode) | Servidores MCP externos para el desarrollo; cumplen el requisito académico | Participar en la cadena runtime del chatbot o recibir secretos del dominio |
 | PostgreSQL 18 | Persistencia relacional y soporte de `pg_trgm` | Ser accedido por Angular, FastAPI o MCP |
 | Ollama Cloud | Generación de respuestas y uso de herramientas | Ser la fuente de verdad del dominio |
 
@@ -84,10 +83,12 @@ El requisito mínimo es:
 - Al menos dos servidores o herramientas MCP.
 - Al menos uno externo.
 
-Diseño previsto:
+Diseño aprobado:
 
-- **Servidor interno de dominio:** expone herramientas de consulta y apoyo (por ejemplo, búsqueda, detalle y sugerencias) que delegan en la API NestJS usando el token del usuario.
-- **Servidor externo:** aporta una capacidad auxiliar. Context7 o Playwright en OpenCode pueden satisfacer el requisito para el entorno de desarrollo; si el asistente debe consumir un MCP externo en runtime, se agregará uno y se documentará en la PoC.
+- **Servidor MCP propio del proyecto:** expone herramientas de consulta y apoyo (por ejemplo, búsqueda, detalle y sugerencias) que delegan en la API NestJS usando el token del usuario. Es el servidor que se utiliza durante la ejecución del chatbot.
+- **Servidores MCP externos:** **Context7** y **Playwright**, integrados en OpenCode. Se usan como herramientas de desarrollo y son los que cumplen el requisito académico de contar con MCP externo. No forman parte de la cadena runtime del chatbot ni reciben secretos del dominio.
+
+Esta decisión está aprobada y no requiere confirmación adicional del docente.
 
 Los servidores MCP no reciben `userId` ni `role` como parámetros de herramienta. El usuario se obtiene del token verificado.
 
@@ -248,6 +249,5 @@ Antes de declarar funcional una capacidad, deben resolverse y documentarse estas
 7. Compatibilidad de LangChain, FastMCP y MCP 2026-07-28.
 8. Resolución de dependencias Python entre FastAPI, FastMCP y Starlette.
 9. *Tool calling* y *streaming* de Ollama Cloud con `gemma4:31b`.
-10. Necesidad de que el asistente consuma un MCP externo en runtime.
 
 La cadena MCP no se considerará funcional hasta completar una PoC aislada con dos usuarios, tokens válidos, inválidos y vencidos, y verificación de que no hay estado compartido.

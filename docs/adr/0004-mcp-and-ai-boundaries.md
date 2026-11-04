@@ -5,7 +5,7 @@
 
 ## Contexto
 
-El asistente conversacional debe poder consultar y operar el dominio sin convertirse en una segunda fuente de verdad. El proyecto exige al menos dos servidores o herramientas MCP, con al menos uno externo. LangChain, FastMCP y MCP 2026-07-28 todavía deben verificarse en conjunto.
+El asistente conversacional debe poder consultar y operar el dominio sin convertirse en una segunda fuente de verdad. El proyecto exige al menos dos servidores o herramientas MCP, con al menos uno externo. Context7 y Playwright, integrados en OpenCode, son los servidores externos aprobados; el servidor MCP propio se usa durante la ejecución del chatbot. LangChain, FastMCP y MCP 2026-07-28 todavía deben verificarse en conjunto.
 
 ## Decisión
 
@@ -13,17 +13,19 @@ El asistente conversacional debe poder consultar y operar el dominio sin convert
 
 - FastAPI recibe el mensaje, verifica el JWT, administra la conversación y orquesta LangChain.
 - LangChain construye el agente e invoca el modelo de Ollama Cloud.
-- El servidor MCP interno expone herramientas delgadas que llaman a la API NestJS con el token del usuario.
+- El servidor MCP propio del proyecto expone herramientas delgadas que llaman a la API NestJS con el token del usuario.
 - NestJS aplica autenticación, autorización, reglas, estados y persistencia.
 - FastAPI, LangChain y MCP no acceden a PostgreSQL ni duplican reglas del dominio.
-- El servidor MCP externo aporta capacidades auxiliares y no recibe secretos del dominio.
+- Los servidores MCP externos (Context7 y Playwright) se integran en OpenCode y no reciben secretos del dominio.
 
 ### Servidores MCP
 
 Se requieren al menos dos servidores o herramientas MCP:
 
-1. **MCP interno de dominio:** herramientas de búsqueda, detalle y apoyo a coincidencias, siempre delegando en NestJS.
-2. **MCP externo:** una capacidad auxiliar. Context7 o Playwright en OpenCode pueden cumplir el requisito para el entorno de desarrollo; si el asistente debe consumir un MCP externo en tiempo de ejecución, se agregará uno y se documentará en la PoC.
+1. **MCP propio del proyecto:** herramientas de búsqueda, detalle y apoyo a coincidencias, siempre delegando en NestJS. Es el servidor que se utiliza durante la ejecución del chatbot.
+2. **MCP externos:** **Context7** y **Playwright**, integrados en OpenCode. Se usan como herramientas de desarrollo y son los que cumplen el requisito académico de contar con MCP externo. No forman parte de la cadena runtime del chatbot.
+
+Esta decisión está aprobada y no requiere confirmación adicional del docente.
 
 Las herramientas no reciben `userId` ni `role` como parámetros. El usuario se deriva del token y NestJS vuelve a autorizar cada llamada.
 
@@ -49,7 +51,6 @@ Las herramientas no reciben `userId` ni `role` como parámetros. El usuario se d
 
 - Compatibilidad exacta de LangChain 1.4.8, FastMCP 4.1.6 y MCP 2026-07-28.
 - Resolución de dependencias entre FastAPI, FastMCP y Starlette.
-- Necesidad de consumo de un MCP externo en runtime.
 - Comportamiento de *tool calling* y *streaming* de Ollama Cloud con `gemma4:31b`.
 
 ## PoC obligatoria
@@ -68,4 +69,5 @@ No se declarará funcional la cadena MCP hasta completar una PoC aislada que ver
 
 - Los servidores MCP deben ser adaptadores finos y auditables.
 - Cualquier regla nueva se implementa en NestJS, no en MCP ni en el prompt.
+- Context7 y Playwright quedan fuera de la cadena runtime del chatbot; el servidor MCP propio es el que se invoca durante la ejecución.
 - La PoC puede revelar incompatibilidades que obliguen a ajustar versiones; no se cambiará de tecnología sin autorización.

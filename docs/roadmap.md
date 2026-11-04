@@ -83,7 +83,8 @@ Las etapas de dominio, autenticación, integración del asistente y MCP se detal
 - Coincidencias.
 - Solicitudes de recuperación y devoluciones.
 - Asistente con LangChain y Ollama Cloud.
-- Servidores MCP interno y externo.
+- Servidor MCP propio en la ejecución del chatbot.
+- Servidores MCP externos Context7 y Playwright, integrados en OpenCode.
 - PoC obligatoria de la cadena MCP con aislamiento entre usuarios.
 
 ## Regla de avance

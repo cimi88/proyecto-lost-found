@@ -39,7 +39,7 @@ Decisiones y restricciones:
 
 - NestJS es la **única fuente de verdad** para reglas de negocio y acceso a datos.
 - El asistente y los servidores MCP **no acceden a PostgreSQL** ni duplican reglas.
-- Se requieren **al menos dos servidores o herramientas MCP**, con al menos uno externo.
+- Se requieren **al menos dos servidores o herramientas MCP**. Los servidores externos son **Context7 y Playwright**, integrados en OpenCode y usados para cumplir el requisito académico. El **servidor MCP propio** del proyecto se usa durante la ejecución del chatbot.
 - Los contratos HTTP de la versión 1 son **TypeScript escritos a mano**; no se generan automáticamente.
 - El monorepo es simple: **sin Nx y sin npm workspaces**.
 - No se sustituyen tecnologías aprobadas sin autorización explícita.
@@ -52,11 +52,12 @@ flowchart LR
   FE -->|REST /api/v1| API[NestJS API]
   FE -->|REST /chat| AI[FastAPI + LangChain]
   AI -->|HTTPS| LLM[Ollama Cloud · gemma4:31b]
-  AI -->|MCP + Bearer| MCP1[FastMCP dominio]
+  AI -->|MCP + Bearer| MCP1[FastMCP propio]
   MCP1 -->|REST + Bearer| API
-  AI -.->|MCP + Bearer| MCP2[FastMCP externo]
   API -->|TypeORM| DB[(PostgreSQL 18)]
 ```
+
+Context7 y Playwright, integrados en OpenCode, son los servidores MCP externos del proyecto. El servidor MCP propio es el que participa en la ejecución del chatbot.
 
 La arquitectura detallada, los límites entre componentes, la autenticación y el flujo MCP están en [`docs/architecture.md`](docs/architecture.md).
 
@@ -68,7 +69,7 @@ La arquitectura detallada, los límites entre componentes, la autenticación y e
 ├── backend/                  # NestJS API (Etapa 0.2)
 ├── ai-service/
 │   ├── app/                  # FastAPI + LangChain (Etapa 0.5)
-│   └── mcp_server/           # Servidor MCP interno de dominio
+│   └── mcp_server/           # Servidor MCP propio de dominio
 ├── contracts/
 │   └── v1/                   # Contratos HTTP TypeScript v1
 ├── docs/

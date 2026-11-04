@@ -16,7 +16,7 @@ frontend/        Angular + SCSS
 backend/         NestJS API
 ai-service/
   app/           FastAPI + LangChain
-  mcp_server/    FastMCP interno de dominio
+  mcp_server/    FastMCP propio de dominio
 contracts/v1/    Contratos HTTP TypeScript v1 escritos a mano
 docs/            Arquitectura, dominio, roadmap y ADRs
 scripts/         Scripts de desarrollo

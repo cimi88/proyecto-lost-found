@@ -27,7 +27,7 @@ Restricciones asociadas:
 
 - No se usa Docker; PostgreSQL se instala de forma nativa.
 - No se usa Nx ni npm workspaces; el monorepo es simple.
-- Se requieren al menos dos servidores o herramientas MCP, con al menos uno externo.
+- Se requieren al menos dos servidores o herramientas MCP. Context7 y Playwright, integrados en OpenCode, son los servidores externos del proyecto; el servidor MCP propio se usa durante la ejecución del chatbot.
 - Los contratos HTTP v1 son TypeScript escritos a mano.
 - NestJS es la única fuente de verdad para reglas de negocio y acceso a datos.
 - El asistente no accede directamente a PostgreSQL ni duplica reglas.
