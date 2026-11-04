@@ -1,0 +1,70 @@
+# Dependencias
+node_modules/
+.pnpm-store/
+.npm/
+.yarn/
+
+# Build, tests y caché
+dist/
+build/
+coverage/
+.angular/
+.cache/
+*.tsbuildinfo
+test-results/
+playwright-report/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Variables de entorno y secretos
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+
+# Datos locales
+*.db
+*.sqlite
+*.sqlite3
+pgdata/
+uploads/
+tmp/
+temp/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE y sistema operativo
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Herramientas locales
+.opencode/
+
+# Varios
+*.local
