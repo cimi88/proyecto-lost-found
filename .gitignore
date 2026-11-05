@@ -63,8 +63,7 @@ pnpm-debug.log*
 Thumbs.db
 Desktop.ini
 
-# Herramientas locales
-.opencode/
+# Configuración local
 
 # Varios
 *.local
