@@ -2,8 +2,8 @@
 
 Monorepo del proyecto **Lost & Found**: una aplicación para registrar objetos perdidos y encontrados, buscar coincidencias y gestionar solicitudes de recuperación y devoluciones.
 
-> **Estado actual:** Etapa 0.1 — esqueleto inicial del monorepo y documentación.
-> Todavía no hay dependencias instaladas, código de aplicación ni base de datos configurada.
+> **Estado actual:** Etapa 0.2 — backend base implementado, aprobada.
+> El backend NestJS ya está inicializado en `backend/` con `GET /api/health`; todavía no hay base de datos configurada.
 
 ## Objetivo
 
@@ -108,8 +108,8 @@ Las versiones de Angular y Python se fijarán en sus etapas de inicialización.
 | Etapa | Alcance | Estado |
 |---|---|---|
 | 0.0 | Verificación NestJS CJS + TypeScript 6 + Node 24 | Aprobada |
-| 0.1 | Esqueleto del monorepo y documentación | En revisión |
-| 0.2 | Backend NestJS con `/api/health` | Pendiente |
+| 0.1 | Esqueleto del monorepo y documentación | Aprobada |
+| 0.2 | Backend NestJS con `/api/health` | Aprobada |
 | 0.3 | PostgreSQL + TypeORM + migración base `pg_trgm` | Pendiente |
 | 0.4 | Base Angular | Pendiente |
 | 0.5 | Base FastAPI sin Ollama, JWT ni MCP | Pendiente |

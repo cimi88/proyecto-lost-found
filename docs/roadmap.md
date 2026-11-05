@@ -7,8 +7,8 @@ El proyecto se construye en etapas pequeñas y verificables. Cada etapa requiere
 | Etapa | Alcance | Estado |
 |---|---|---|
 | 0.0 | Verificación aislada de NestJS 12 + CommonJS + TypeScript 6.0.3 + Node 24.20.0, sin PostgreSQL ni TypeORM | Aprobada |
-| 0.1 | Esqueleto inicial del monorepo, configuración compartida y documentación | En revisión |
-| 0.2 | Backend NestJS con endpoint `/api/health` | Pendiente |
+| 0.1 | Esqueleto inicial del monorepo, configuración compartida y documentación | Aprobada |
+| 0.2 | Backend NestJS con endpoint `/api/health` | Aprobada |
 | 0.3 | PostgreSQL 18 + TypeORM + migración base con `pg_trgm` | Pendiente |
 | 0.4 | Base del frontend Angular con SCSS | Pendiente |
 | 0.5 | Base del servicio FastAPI, sin Ollama, JWT ni MCP | Pendiente |
@@ -40,6 +40,7 @@ Resultado: aprobada. La prueba se realizó en una carpeta temporal; no se copió
 
 - Proyecto NestJS definitivo en `backend/`.
 - Configuración CommonJS y TypeScript 6.0.3.
+- Configuración por `NODE_ENV` y `PORT`, con `.env.example` versionado.
 - Endpoint `/api/health` en memoria.
 - Pruebas unitarias y e2e.
 - Sin TypeORM ni PostgreSQL.
