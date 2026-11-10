@@ -129,6 +129,6 @@ Context7 y Playwright, integrados en OpenCode, son los servidores MCP externos d
 | 0.3 | PostgreSQL + TypeORM + migraciones | Completado |
 | 0.4 | Frontend Angular | Completado |
 | 0.5 | Servicio FastAPI + MCP + LLM (Groq/Ollama) | Completado para CU10 |
-| 0.6 | Integración y cierre de entrega | En preparación |
+| 0.6 | Integración y cierre de entrega | Completado |
 
 No se inicia un caso de uso fuera del alcance aprobado sin revisión y autorización.

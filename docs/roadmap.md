@@ -19,7 +19,7 @@ El proyecto se construye en etapas pequeñas y verificables. Cada etapa requiere
 | 0.3 | PostgreSQL 18 + TypeORM + migración base con `pg_trgm` | Completada |
 | 0.4 | Frontend Angular con SCSS | Completada |
 | 0.5 | Servicio FastAPI + LangChain + MCP + LLM (Groq/Ollama) | Completada para CU10 |
-| 0.6 | Integración de bases, documentación de cierre y commit final de Etapa 0 | En preparación |
+| 0.6 | Integración de bases, documentación de cierre y commit final de Etapa 0 | Completado |
 
 ### Entregables por etapa
 
@@ -93,7 +93,7 @@ Resultado: completada para el alcance de CU10.
 - Commit de cierre de Etapa 0.
 - Revisión antes de la entrega.
 
-Resultado: en preparación.
+Resultado: completado.
 
 ## Casos de uso
 
