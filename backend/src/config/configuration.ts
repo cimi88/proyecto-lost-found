@@ -1,4 +1,4 @@
-import { validateEnv } from './env.validation';
+import { validateEnv, validateMatchingConfig } from './env.validation';
 
 export default function configuration() {
   const { NODE_ENV, PORT } = validateEnv(process.env);
@@ -6,5 +6,6 @@ export default function configuration() {
   return {
     nodeEnv: NODE_ENV,
     port: PORT,
+    matching: validateMatchingConfig(process.env),
   };
 }
