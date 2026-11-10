@@ -3,9 +3,11 @@
 - **Estado:** Aceptado con puntos abiertos de PoC
 - **Fecha:** 2026-11-03
 
+> **Estado de implementación CU10:** la decisión original se conserva. En la entrega actual el MCP propio expone `get_user_context` y tres herramientas de escritura (`create_lost_publication`, `create_found_publication`, `create_recovery_request`). Las escrituras son invocadas por FastAPI únicamente después de la confirmación explícita del usuario. FastAPI no verifica JWT y usa `X-Demo-User-Id`. Las herramientas de búsqueda, detalle y coincidencias siguen siendo diseño futuro, no funcionalidad implementada. Ver ADR 0011.
+
 ## Contexto
 
-El asistente conversacional debe poder consultar y operar el dominio sin convertirse en una segunda fuente de verdad. El proyecto exige al menos dos servidores o herramientas MCP, con al menos uno externo. Context7 y Playwright, integrados en OpenCode, son los servidores externos aprobados; el servidor MCP propio se usa durante la ejecución del chatbot. LangChain, FastMCP y MCP 2026-07-28 todavía deben verificarse en conjunto.
+El asistente conversacional debe poder consultar y operar el dominio sin convertirse en una segunda fuente de verdad. El proyecto exige al menos dos servidores o herramientas MCP, con al menos uno externo. Context7 y Playwright, integrados en OpenCode, son los servidores externos aprobados; el servidor MCP propio se usa durante la ejecución del chatbot. En el momento de esta decisión, LangChain, FastMCP y MCP 2026-07-28 debían verificarse en conjunto; el estado actual se detalla en el addendum de implementación CU10.
 
 ## Decisión
 
@@ -22,7 +24,7 @@ El asistente conversacional debe poder consultar y operar el dominio sin convert
 
 Se requieren al menos dos servidores o herramientas MCP:
 
-1. **MCP propio del proyecto:** herramientas de búsqueda, detalle y apoyo a coincidencias, siempre delegando en NestJS. Es el servidor que se utiliza durante la ejecución del chatbot.
+1. **MCP propio del proyecto:** en el diseño objetivo, herramientas de búsqueda, detalle y apoyo a coincidencias, siempre delegando en NestJS. En CU10 se implementaron `get_user_context` y las tres herramientas de escritura de creación ya indicadas; las herramientas de lectura de búsqueda, detalle y coincidencias no se implementaron.
 2. **MCP externos:** **Context7** y **Playwright**, integrados en OpenCode. Se usan como herramientas de desarrollo y son los que cumplen el requisito académico de contar con MCP externo. No forman parte de la cadena runtime del chatbot.
 
 Esta decisión está aprobada y no requiere confirmación adicional del docente.
@@ -49,9 +51,9 @@ Las herramientas no reciben `userId` ni `role` como parámetros. El usuario se d
 
 ## Puntos abiertos
 
-- Compatibilidad exacta de LangChain 1.4.8, FastMCP 4.1.6 y MCP 2026-07-28.
-- Resolución de dependencias entre FastAPI, FastMCP y Starlette.
-- Comportamiento de *tool calling* y *streaming* de Ollama Cloud con `gemma4:31b`.
+- ~~Compatibilidad exacta de LangChain 1.4.8, FastMCP 4.1.6 y MCP 2026-07-28.~~ Resuelto para CU10 con LangChain 1.4.8, FastMCP 3.4.11, MCP 1.30.0 y `langchain-mcp-adapters` 0.3.2. La combinación FastMCP 4.1.6 + MCP 2.x no fue compatible con el adaptador elegido.
+- ~~Resolución de dependencias entre FastAPI, FastMCP y Starlette.~~ Resuelto y verificado en CU10.
+- Comportamiento de *tool calling* y *streaming* de Ollama Cloud con `gemma4:31b`: la respuesta de texto fue verificada; CU10 no delega el rol al tool calling del modelo.
 
 ## PoC obligatoria
 

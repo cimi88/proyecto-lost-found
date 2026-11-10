@@ -16,11 +16,12 @@ Estados: `ACTIVE`, `RESERVED`, `RETURNED`, `CLOSED`.
 Reglas:
 
 - `ACTIVE -> RESERVED` al aprobar una solicitud de recuperación.
-- `RESERVED -> ACTIVE` al cancelar la solicitud aprobada, salvo cierre forzado.
+- `RESERVED -> ACTIVE` al cancelar la solicitud aprobada.
 - `RESERVED -> RETURNED` solo mediante el registro de una devolución.
 - `ACTIVE -> CLOSED` por el propietario o un administrador.
-- `RESERVED -> CLOSED` solo por cierre forzado de un administrador, cancelando primero la solicitud aprobada.
+- No existe cierre forzado de `RESERVED`: el cierre solo se permite sobre publicaciones `ACTIVE`.
 - El propietario no puede cerrar una publicación `RESERVED`.
+- La eliminación de publicaciones no está implementada.
 
 ### Solicitudes de recuperación
 
@@ -31,7 +32,9 @@ Reglas:
 - Solo se crean sobre publicaciones `FOUND`.
 - El solicitante no puede ser el propietario.
 - Aprobar una solicitud pone la publicación en `RESERVED` y rechaza las demás solicitudes pendientes de esa publicación.
-- El solicitante, el propietario o un administrador pueden cancelar una solicitud aprobada antes de que exista una devolución.
+- El solicitante puede cancelar su solicitud `PENDING`.
+- El solicitante o el propietario pueden cancelar una solicitud `APPROVED`.
+- Un ADMIN solo puede cancelar si es solicitante o propietario.
 - La cancelación registra actor y motivo.
 - Una solicitud `COMPLETED` no se cancela.
 
@@ -39,25 +42,17 @@ Reglas:
 
 La versión 1 usa un flujo de un solo paso:
 
-- La registra el propietario o un administrador.
-- Un administrador puede registrarla sin ser quien entrega el objeto.
+- La registra el propietario de la publicación.
+- Un ADMIN solo puede registrarla si es el propietario.
 - La solicitud pasa a `COMPLETED`.
 - La publicación pasa a `RETURNED`.
+- Los datos `completed_at`, `completed_by_id` y `return_notes` se almacenan en `recovery_requests`.
+- No existe una tabla `devoluciones` separada.
 - La confirmación del solicitante queda para la versión 2.
-
-Se distinguen tres identificadores:
-
-| Campo | Significado |
-|---|---|
-| `registered_by_id` | Usuario que registra la devolución. |
-| `delivered_by_id` | Usuario que entrega el objeto. |
-| `received_by_id` | Usuario que lo recibe. |
-
-El servidor deriva los identificadores. El cliente solo aporta notas y, en una versión posterior, la confirmación.
 
 ### Coincidencias
 
-Estados: `SUGGESTED`, `CONFIRMED`, `DISMISSED`.
+Estados persistidos posibles: `SUGGESTED`, `CONFIRMED`, `DISMISSED`. La API y la UI actuales solo generan y muestran `SUGGESTED`; no existen endpoints para confirmar o descartar.
 
 - No existe `INVALIDATED`.
 - “Accionable” se deriva de que ambas publicaciones estén `ACTIVE`.

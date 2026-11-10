@@ -3,6 +3,8 @@
 - **Estado:** Aceptado
 - **Fecha:** 2026-11-03
 
+> **Estado de implementación:** esta ADR describe una decisión de arquitectura objetivo. JWT/RS256 **no está implementado** en la entrega actual. La identidad se resuelve con `X-Demo-User-Id`; ver ADR 0008 y ADR 0011. No debe presentarse como autenticación lista para producción.
+
 ## Contexto
 
 El sistema tiene tres saltos relevantes: Angular hacia NestJS, Angular hacia FastAPI y FastAPI hacia NestJS a través de LangChain y MCP. El asistente no debe acceder a PostgreSQL ni decidir reglas de negocio. Además, una conversación no puede filtrar datos de otro usuario.

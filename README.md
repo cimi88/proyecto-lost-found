@@ -2,8 +2,7 @@
 
 Monorepo del proyecto **Lost & Found**: una aplicación para registrar objetos perdidos y encontrados, buscar coincidencias y gestionar solicitudes de recuperación y devoluciones.
 
-> **Estado actual:** Etapa 0.2 — backend base implementado, aprobada.
-> El backend NestJS ya está inicializado en `backend/` con `GET /api/health`; todavía no hay base de datos configurada.
+> **Estado de esta entrega:** CU1–CU10 implementados. CU8 incorpora devoluciones y `COMPLETED`; CU9 incorpora consulta, edición y cierre de publicaciones propias, sin eliminación. La gestión de solicitudes relacionadas quedó parcial. La identidad es de demostración (`X-Demo-User-Id`); JWT/RS256 no está implementado.
 
 ## Objetivo
 
@@ -22,18 +21,28 @@ Construir una aplicación full stack con reglas de negocio centralizadas en Nest
 9. Gestionar las publicaciones propias.
 10. Usar el asistente conversacional.
 
+### Estado por caso de uso
+
+| # | Estado en esta entrega |
+|---|---|
+| 1–7 | Implementados y verificados |
+| 8 | Implementado: devolución, `COMPLETED` y `RETURNED` |
+| 9 | Implementado parcialmente: consulta, edición y cierre de publicaciones propias; sin eliminación |
+| 10 | Implementado: asistente con preparación de acciones, vista previa, confirmación explícita y MCP de lectura/escritura |
+
 ## Stack
 
 | Capa | Tecnología | Estado / versión |
 |---|---|---|
-| Frontend | Angular + TypeScript + SCSS | Se fija en Etapa 0.4 |
+| Frontend | Angular + TypeScript + SCSS | Angular 22.2.x, Vitest 5.x |
 | Backend | NestJS + TypeScript + CommonJS | NestJS 12.3.2, TypeScript 6.0.3, Node 24.20.0 |
-| Servicio de IA | Python + FastAPI + LangChain | Se fija en Etapa 0.5 |
-| LLM | Ollama Cloud, modelo `gemma4:31b` | Configuración en Etapa 0.5 |
-| Base de datos | PostgreSQL 18 nativo en Windows | Sin Docker; se configura en Etapa 0.3 |
-| Persistencia | TypeORM con migraciones | Se configura en Etapa 0.3 |
-| Protocolos | REST + MCP | Diseño documentado |
-| Herramientas | Git/GitHub, OpenCode | Git inicializado en esta etapa |
+| Base de datos | PostgreSQL 18 nativo en Windows | Implementado; sin Docker |
+| Persistencia | TypeORM con migraciones | TypeORM 0.3.31, `pg` 8.23.1 |
+| Servicio de IA | Python + FastAPI + LangChain | Python 3.12.1, FastAPI 0.162.1, LangChain 1.4.8 |
+| MCP | FastMCP + MCP + `langchain-mcp-adapters` | FastMCP 3.4.11, MCP 1.30.0, adapters 0.3.2 |
+| LLM | Groq por defecto (`openai/gpt-oss-120b`) u Ollama (`gemma4:31b`) | Implementado en CU10 |
+| Identidad | `X-Demo-User-Id` | Demostración; JWT/RS256 no implementado |
+| Protocolos | REST + MCP | Implementados en la entrega |
 
 Decisiones y restricciones:
 
@@ -43,33 +52,40 @@ Decisiones y restricciones:
 - Los contratos HTTP de la versión 1 son **TypeScript escritos a mano**; no se generan automáticamente.
 - El monorepo es simple: **sin Nx y sin npm workspaces**.
 - No se sustituyen tecnologías aprobadas sin autorización explícita.
+- CU8 está implementado mediante la finalización de solicitudes de recuperación, con transición de la publicación a `RETURNED`.
+- CU9 permite consultar, editar y cerrar publicaciones propias activas. La eliminación de publicaciones no está implementada y la gestión de solicitudes relacionadas quedó parcial.
+- CU10 prepara publicaciones perdidas, publicaciones encontradas y solicitudes de recuperación. La ejecución requiere confirmación explícita y las herramientas MCP de escritura no se ejecutan directamente desde el modelo.
+- La conversación del asistente se conserva en localStorage por perfil demo; no se persiste en PostgreSQL.
 
-## Arquitectura en una vista
+## Arquitectura actual
 
 ```mermaid
 flowchart LR
   U[Usuario] -->|HTTPS| FE[Angular SPA]
-  FE -->|REST /api/v1| API[NestJS API]
-  FE -->|REST /chat| AI[FastAPI + LangChain]
-  AI -->|HTTPS| LLM[Ollama Cloud · gemma4:31b]
-  AI -->|MCP + Bearer| MCP1[FastMCP propio]
-  MCP1 -->|REST + Bearer| API
+  FE -->|REST /api/v1 + X-Demo-User-Id| API[NestJS API]
+  FE -->|POST /chat + X-Demo-User-Id| AI[FastAPI + LangChain]
+  AI -->|HTTPS| LLM[Groq · openai/gpt-oss-120b / Ollama opcional]
+  AI -->|MCP + X-Demo-User-Id| MCP1[FastMCP propio]
+  MCP1 -->|REST + X-Demo-User-Id| API
   API -->|TypeORM| DB[(PostgreSQL 18)]
 ```
 
-Context7 y Playwright, integrados en OpenCode, son los servidores MCP externos del proyecto. El servidor MCP propio es el que participa en la ejecución del chatbot.
+El proveedor LLM se selecciona con `LLM_PROVIDER=groq` u `LLM_PROVIDER=ollama`.
+Groq es el valor predeterminado.
 
-La arquitectura detallada, los límites entre componentes, la autenticación y el flujo MCP están en [`docs/architecture.md`](docs/architecture.md).
+La arquitectura objetivo con JWT/Bearer y el flujo MCP ampliado se mantiene documentada en [`docs/architecture.md`](docs/architecture.md), separada de lo implementado en esta entrega.
+
+Context7 y Playwright, integrados en OpenCode, son los servidores MCP externos del proyecto. El servidor MCP propio participa en la ejecución del chatbot y expone la consulta de rol y tres herramientas de escritura utilizadas por FastAPI después de la confirmación del usuario.
 
 ## Estructura del repositorio
 
 ```text
 .
-├── frontend/                 # Angular + SCSS (Etapa 0.4)
-├── backend/                  # NestJS API (Etapa 0.2)
+├── frontend/                 # Angular + SCSS
+├── backend/                  # NestJS API
 ├── ai-service/
-│   ├── app/                  # FastAPI + LangChain (Etapa 0.5)
-│   └── mcp_server/           # Servidor MCP propio de dominio
+│   ├── app/                  # FastAPI + LangChain
+│   └── mcp_server/           # Servidor MCP propio
 ├── contracts/
 │   └── v1/                   # Contratos HTTP TypeScript v1
 ├── docs/
@@ -96,23 +112,23 @@ La arquitectura detallada, los límites entre componentes, la autenticación y e
 
 ## Requisitos de entorno
 
-- Node.js **24.20.0** (verificado en Etapa 0.0).
-- npm **12.0.2** (verificado en Etapa 0.0).
+- Node.js **24.20.0**.
+- npm **12.0.2**.
+- Python **3.12.1** para `ai-service`.
+- PostgreSQL **18 nativo en Windows**. No se usa Docker.
 - Git.
-- PostgreSQL **18 nativo en Windows** para las etapas de persistencia. No se usa Docker.
+- `GROQ_API_KEY` configurada en `ai-service/.env` para el asistente, o `OLLAMA_API_KEY` si se selecciona `LLM_PROVIDER=ollama`.
 
-Las versiones de Angular y Python se fijarán en sus etapas de inicialización.
+## Hitos
 
-## Etapas
-
-| Etapa | Alcance | Estado |
+| Hito | Alcance | Estado |
 |---|---|---|
-| 0.0 | Verificación NestJS CJS + TypeScript 6 + Node 24 | Aprobada |
-| 0.1 | Esqueleto del monorepo y documentación | Aprobada |
-| 0.2 | Backend NestJS con `/api/health` | Aprobada |
-| 0.3 | PostgreSQL + TypeORM + migración base `pg_trgm` | Pendiente |
-| 0.4 | Base Angular | Pendiente |
-| 0.5 | Base FastAPI sin Ollama, JWT ni MCP | Pendiente |
-| 0.6 | Integración, documentación y commit de cierre | Pendiente |
+| 0.0 | Verificación NestJS CJS + TypeScript 6 + Node 24 | Completado |
+| 0.1 | Esqueleto del monorepo y documentación | Completado |
+| 0.2 | Backend NestJS con `/api/health` | Completado |
+| 0.3 | PostgreSQL + TypeORM + migraciones | Completado |
+| 0.4 | Frontend Angular | Completado |
+| 0.5 | Servicio FastAPI + MCP + LLM (Groq/Ollama) | Completado para CU10 |
+| 0.6 | Integración y cierre de entrega | En preparación |
 
-No se avanza a la siguiente etapa sin revisión y autorización.
+No se inicia un caso de uso fuera del alcance aprobado sin revisión y autorización.

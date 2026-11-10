@@ -13,6 +13,11 @@ Una ADR registra una decisión arquitectónica importante, su contexto y sus con
 | [0005](0005-matching-engine.md) | Algoritmo de coincidencias v1 | Aceptado |
 | [0006](0006-domain-lifecycle.md) | Ciclo de vida del dominio y devoluciones | Aceptado |
 | [0007](0007-repository-structure.md) | Estructura del monorepo | Aceptado |
+| [0008](0008-demo-identity-seam.md) | Identidad local de demostración para CU1 | Aceptado |
+| [0009](0009-recovery-requests.md) | Solicitudes de recuperación, reserva y devolución | Aceptado |
+| [0011](0011-assistant-runtime.md) | Asistente con preparación y confirmación de acciones | Aceptado |
+
+La numeración no es consecutiva: no existe un ADR 0010 en este repositorio. No se renumera 0011 para evitar romper referencias existentes.
 
 ## Convenciones
 
