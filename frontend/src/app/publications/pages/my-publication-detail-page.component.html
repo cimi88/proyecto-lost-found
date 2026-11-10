@@ -1,0 +1,129 @@
+<section class="page">
+  <a
+    class="back-link"
+    routerLink="/my-publications"
+    data-testid="my-publication-back"
+  >
+    ← Volver a mis publicaciones
+  </a>
+
+  @if (loading()) {
+    <p class="status" role="status" data-testid="my-publication-detail-loading">
+      Cargando publicación…
+    </p>
+  } @else if (notFound()) {
+    <div class="alert" data-testid="my-publication-detail-not-found">
+      <h1>Publicación no encontrada</h1>
+      <p>
+        La publicación no existe o no pertenece a tu cuenta.
+      </p>
+    </div>
+  } @else if (errorMessage(); as message) {
+    <div class="alert alert-error" role="alert" data-testid="my-publication-detail-error">
+      <p>{{ message }}</p>
+      <button
+        type="button"
+        class="secondary"
+        data-testid="my-publication-detail-retry"
+        (click)="retry()"
+      >
+        Reintentar
+      </button>
+    </div>
+  } @else if (publication(); as item) {
+    <article class="detail-card" data-testid="my-publication-detail">
+      <header class="detail-header">
+        <div class="badges">
+          <span class="type-badge" [class.type-found]="item.type === 'FOUND'">
+            {{ typeLabels[item.type] }}
+          </span>
+          <span class="status-badge">{{ statusLabels[item.status] }}</span>
+        </div>
+        <p class="eyebrow">Lost &amp; Found</p>
+        <h1>{{ item.title }}</h1>
+      </header>
+
+      <section class="detail-section" aria-labelledby="my-object-details-heading">
+        <h2 id="my-object-details-heading">Información del objeto</h2>
+        <dl class="detail-grid">
+          <div class="description-field">
+            <dt>Descripción</dt>
+            <dd>{{ item.description }}</dd>
+          </div>
+          <div>
+            <dt>Ubicación</dt>
+            <dd>{{ item.location }}</dd>
+          </div>
+          <div>
+            <dt>Categoría</dt>
+            <dd>{{ categoryLabels[item.category] }}</dd>
+          </div>
+          <div>
+            <dt>Tipo</dt>
+            <dd>{{ typeLabels[item.type] }}</dd>
+          </div>
+          <div>
+            <dt>Fecha del evento</dt>
+            <dd>
+              <time [attr.datetime]="item.eventDate">
+                {{ item.eventDate | date: 'dd/MM/yyyy' : '+0000' }}
+              </time>
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="detail-section" aria-labelledby="my-metadata-heading">
+        <h2 id="my-metadata-heading">Metadatos de publicación</h2>
+        <dl class="detail-grid metadata-grid">
+          <div>
+            <dt>Estado</dt>
+            <dd>{{ statusLabels[item.status] }}</dd>
+          </div>
+          <div>
+            <dt>Identificador</dt>
+            <dd><code>{{ item.id }}</code></dd>
+          </div>
+          <div>
+            <dt>Creada</dt>
+            <dd>
+              <time [attr.datetime]="item.createdAt">
+                {{ item.createdAt | date: "dd/MM/yyyy HH:mm 'UTC'" : '+0000' }}
+              </time>
+            </dd>
+          </div>
+          <div>
+            <dt>Actualizada</dt>
+            <dd>
+              <time [attr.datetime]="item.updatedAt">
+                {{ item.updatedAt | date: "dd/MM/yyyy HH:mm 'UTC'" : '+0000' }}
+              </time>
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <div class="candidate-actions">
+        @if (item.status === 'ACTIVE') {
+          <a
+            class="candidate-detail-link"
+            [routerLink]="['/my-publications', item.id, 'edit']"
+            data-testid="my-publication-detail-edit"
+          >
+            Editar publicación
+          </a>
+        }
+        @if (item.type === 'FOUND') {
+          <a
+            class="candidate-detail-link recovery-request-link"
+            routerLink="/recovery-requests/received"
+            [queryParams]="{ publicationId: item.id }"
+            data-testid="my-publication-detail-requests"
+          >
+            Ver solicitudes de esta publicación
+          </a>
+        }
+      </div>
+    </article>
+  }
+</section>

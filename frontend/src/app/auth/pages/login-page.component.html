@@ -1,0 +1,54 @@
+<section class="auth-page">
+  <a class="back-link" routerLink="/" data-testid="login-back">
+    ← Volver al acceso
+  </a>
+
+  <header class="auth-header">
+    <p class="eyebrow">Acceso demo</p>
+    <h1>Iniciar sesión</h1>
+    <p class="subtitle">
+      Elegí uno de los perfiles demo existentes. No se solicitan credenciales
+      reales y no se permite elegir un rol manualmente.
+    </p>
+  </header>
+
+  @if (!demoEnabled) {
+    <div class="alert alert-warning" role="alert" data-testid="login-demo-disabled">
+      El acceso demo está deshabilitado en este entorno.
+    </div>
+  }
+
+  @if (errorMessage(); as message) {
+    <div class="alert alert-error" role="alert" data-testid="login-error">
+      {{ message }}
+    </div>
+  }
+
+  <div class="profile-list">
+    @for (profile of profiles; track profile.id) {
+      <button
+        type="button"
+        class="profile-card"
+        [disabled]="!demoEnabled || selectingId() !== null"
+        [attr.data-testid]="'demo-profile-' + profile.id"
+        (click)="selectProfile(profile)"
+      >
+        <span class="profile-name">{{ profile.label }}</span>
+        <span class="profile-description">{{ profile.description }}</span>
+        <span class="profile-action">
+          {{
+            selectingId() === profile.id
+              ? 'Ingresando…'
+              : 'Entrar con este perfil'
+          }}
+        </span>
+      </button>
+    }
+  </div>
+
+  <div class="demo-note" role="note" data-testid="login-demo-note">
+    <strong>Perfiles de demostración.</strong>
+    Los datos y permisos dependen del usuario configurado en el backend demo.
+    Para registrarte, volvé al inicio y elegí «Registrarse».
+  </div>
+</section>

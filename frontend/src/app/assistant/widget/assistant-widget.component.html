@@ -1,0 +1,64 @@
+<div
+  class="assistant-widget"
+  [class.assistant-widget-hidden]="isAssistantPage()"
+>
+  <section
+    id="assistant-widget-panel"
+    class="assistant-panel"
+    data-testid="assistant-widget-panel"
+    [class.is-open]="open()"
+    [attr.aria-hidden]="!open()"
+    aria-labelledby="assistant-widget-title"
+  >
+    <header class="assistant-panel-header">
+      <div>
+        <p class="assistant-eyebrow">Lost &amp; Found</p>
+        <h2 id="assistant-widget-title">Asistente</h2>
+      </div>
+      <button
+        type="button"
+        class="assistant-close"
+        data-testid="assistant-widget-close"
+        aria-label="Cerrar asistente"
+        title="Cerrar asistente"
+        (click)="close()"
+      >
+        <span aria-hidden="true">×</span>
+      </button>
+    </header>
+
+    <div class="assistant-panel-body">
+      <app-assistant-page [compact]="true" />
+    </div>
+  </section>
+
+  <button
+    type="button"
+    class="assistant-fab"
+    data-testid="assistant-widget-toggle"
+    [class.is-open]="open()"
+    [attr.aria-expanded]="open()"
+    [attr.aria-label]="open() ? 'Cerrar asistente' : 'Abrir asistente'"
+    [attr.title]="open() ? 'Cerrar asistente' : 'Abrir asistente'"
+    aria-controls="assistant-widget-panel"
+    (click)="toggle()"
+  >
+    @if (open()) {
+      <span class="assistant-fab-icon" aria-hidden="true">×</span>
+    } @else {
+      <svg
+        class="assistant-fab-svg"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path
+          fill="currentColor"
+          d="M4 3h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm2 5v2h12V8H6zm0 4v2h8v-2H6z"
+        />
+      </svg>
+    }
+    <span class="assistant-fab-label">{{
+      open() ? 'Cerrar' : 'Chat'
+    }}</span>
+  </button>
+</div>

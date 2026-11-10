@@ -1,0 +1,227 @@
+﻿:host {
+  display: block;
+}
+
+.app-nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem 0.75rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.app-nav a {
+  min-width: 0;
+  padding: 0.25rem 0.55rem;
+  border-radius: 7px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+  color: var(--text-nav);
+  text-decoration: none;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.app-nav a:hover {
+  background: var(--nav-hover);
+  color: var(--text);
+}
+
+.app-nav a.active {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.nav-right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+}
+
+.session-label {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.logout-button {
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 0.25rem 0.55rem;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-nav);
+  background: var(--surface-muted);
+  cursor: pointer;
+}
+
+.logout-button:hover {
+  color: var(--text);
+  background: var(--nav-hover);
+}
+
+.theme-picker {
+  position: relative;
+  margin-left: 0;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 0.25rem 0.55rem;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--text-nav);
+  background: var(--surface-muted);
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.theme-toggle:hover {
+  color: var(--text);
+  background: var(--nav-hover);
+}
+
+.theme-toggle:focus-visible,
+.theme-option:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.theme-menu {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  z-index: 20;
+  display: grid;
+  gap: 0.2rem;
+  min-width: 190px;
+  padding: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  padding: 0.45rem 0.55rem;
+  font: inherit;
+  font-size: 0.82rem;
+  color: var(--text);
+  text-align: left;
+  background: transparent;
+  cursor: pointer;
+}
+
+.theme-option:hover {
+  background: var(--nav-hover);
+}
+
+.theme-option[aria-checked='true'] {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.theme-swatch {
+  flex: 0 0 auto;
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+}
+
+.swatch-light-1 {
+  background: linear-gradient(
+    135deg,
+    var(--swatch-light-1-bg) 50%,
+    var(--swatch-light-1-accent) 50%
+  );
+}
+
+.swatch-light-2 {
+  background: linear-gradient(
+    135deg,
+    var(--swatch-light-2-bg) 50%,
+    var(--swatch-light-2-accent) 50%
+  );
+}
+
+.swatch-dark-1 {
+  background: linear-gradient(
+    135deg,
+    var(--swatch-dark-1-bg) 50%,
+    var(--swatch-dark-1-accent) 50%
+  );
+}
+
+.swatch-dark-2 {
+  background: linear-gradient(
+    135deg,
+    var(--swatch-dark-2-bg) 50%,
+    var(--swatch-dark-2-accent) 50%
+  );
+}
+
+@media (max-width: 520px) {
+  .theme-toggle {
+    padding: 0.22rem 0.45rem;
+    font-size: 0.78rem;
+  }
+
+  .theme-toggle-label {
+    display: none;
+  }
+
+  .theme-menu {
+    right: 0;
+    min-width: 205px;
+  }
+}
+
+@media (min-width: 640px) {
+  .app-nav {
+    gap: 0.45rem 0.65rem;
+    padding: 0.55rem 1rem;
+  }
+
+  .app-nav a {
+    padding: 0.3rem 0.7rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .app-nav {
+    gap: 0.25rem 0.35rem;
+    padding: 0.4rem 0.5rem;
+  }
+
+  .app-nav a {
+    padding: 0.22rem 0.45rem;
+    font-size: 0.78rem;
+  }
+}

@@ -1,0 +1,175 @@
+<section class="page">
+  <header class="page-header">
+    <p class="eyebrow">Lost &amp; Found</p>
+    <h1>Mis publicaciones</h1>
+    <p class="subtitle">
+      Gestioná tus objetos perdidos y encontrados. Podés editar o cerrar una
+      publicación mientras esté activa.
+    </p>
+  </header>
+
+  @if (successMessage(); as message) {
+    <div class="alert alert-success" role="status" data-testid="my-publications-success">
+      <p>{{ message }}</p>
+    </div>
+  }
+
+  @if (loading()) {
+    <p class="status" role="status" data-testid="my-publications-loading">
+      Cargando tus publicaciones…
+    </p>
+  } @else if (errorMessage(); as message) {
+    <div class="alert alert-error" role="alert" data-testid="my-publications-error">
+      <p>{{ message }}</p>
+      <button
+        type="button"
+        class="secondary"
+        data-testid="my-publications-retry"
+        (click)="load()"
+      >
+        Reintentar
+      </button>
+    </div>
+  } @else if (publications().length === 0) {
+    <p class="status" data-testid="my-publications-empty">
+      Todavía no registraste publicaciones.
+    </p>
+  } @else {
+    @if (actionError(); as message) {
+      <div class="alert alert-error" role="alert" data-testid="my-publications-action-error">
+        <p>{{ message }}</p>
+        @if (showReceivedLink()) {
+          <a
+            class="alert-link"
+            routerLink="/recovery-requests/received"
+            data-testid="my-publications-received-link"
+          >
+            Ir a Recibidas
+          </a>
+        }
+      </div>
+    }
+
+    <ul class="publication-list">
+      @for (publication of publications(); track publication.id) {
+        <li
+          class="publication-card"
+          [attr.data-testid]="'my-publication-' + publication.id"
+        >
+          <div class="publication-card-header">
+            <span
+              class="type-badge"
+              [class.type-found]="publication.type === 'FOUND'"
+            >
+              {{ typeLabels[publication.type] }}
+            </span>
+            <span
+              [class]="'status-badge status-' + publication.status.toLowerCase()"
+            >
+              {{ statusLabels[publication.status] }}
+            </span>
+            <span class="category">{{ categoryLabels[publication.category] }}</span>
+          </div>
+
+          <h2>{{ publication.title }}</h2>
+          <p class="description">{{ publication.description }}</p>
+
+          <dl class="publication-meta">
+            <div>
+              <dt>Ubicación</dt>
+              <dd>{{ publication.location }}</dd>
+            </div>
+            <div>
+              <dt>Fecha del evento</dt>
+              <dd>
+                <time [attr.datetime]="publication.eventDate">
+                  {{ publication.eventDate | date: 'dd/MM/yyyy' : '+0000' }}
+                </time>
+              </dd>
+            </div>
+            <div>
+              <dt>Actualizada</dt>
+              <dd>
+                <time [attr.datetime]="publication.updatedAt">
+                  {{ publication.updatedAt | date: "dd/MM/yyyy HH:mm 'UTC'" : '+0000' }}
+                </time>
+              </dd>
+            </div>
+          </dl>
+
+          <div class="publication-actions">
+            <a
+              class="action-link"
+              [routerLink]="['/my-publications', publication.id]"
+              [attr.data-testid]="'my-publication-detail-' + publication.id"
+            >
+              Ver detalle
+            </a>
+            @if (publication.status === 'ACTIVE') {
+              <a
+                class="action-link"
+                [routerLink]="['/my-publications', publication.id, 'edit']"
+                [attr.data-testid]="'my-publication-edit-' + publication.id"
+              >
+                Editar
+              </a>
+              <button
+                type="button"
+                class="secondary"
+                [disabled]="actionInProgress() === publication.id"
+                [attr.data-testid]="'my-publication-close-' + publication.id"
+                (click)="startClose(publication.id)"
+              >
+                Cerrar publicación
+              </button>
+            }
+            @if (publication.type === 'FOUND') {
+              <a
+                class="action-link secondary-link"
+                routerLink="/recovery-requests/received"
+                [queryParams]="{ publicationId: publication.id }"
+                [attr.data-testid]="'my-publication-requests-' + publication.id"
+              >
+                Ver solicitudes de esta publicación
+              </a>
+            }
+          </div>
+
+          @if (closingId() === publication.id) {
+            <div
+              class="close-confirmation"
+              role="group"
+              aria-label="Confirmar cierre de publicación"
+              [attr.data-testid]="'my-publication-close-confirmation-' + publication.id"
+            >
+              <p>
+                ¿Cerrar «{{ publication.title }}»? La publicación dejará de ser
+                visible públicamente, pero no se borrará.
+              </p>
+              <div class="confirmation-actions">
+                <button
+                  type="button"
+                  class="danger"
+                  [disabled]="actionInProgress() === publication.id"
+                  [attr.data-testid]="'my-publication-close-confirm-' + publication.id"
+                  (click)="confirmClose()"
+                >
+                  {{ actionInProgress() === publication.id ? 'Cerrando…' : 'Confirmar cierre' }}
+                </button>
+                <button
+                  type="button"
+                  class="secondary"
+                  [disabled]="actionInProgress() === publication.id"
+                  [attr.data-testid]="'my-publication-close-cancel-' + publication.id"
+                  (click)="cancelClose()"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  }
+</section>

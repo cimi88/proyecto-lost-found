@@ -1,0 +1,93 @@
+<nav class="app-nav">
+  @if (session.isAuthenticated()) {
+    <a routerLink="/lost" routerLinkActive="active">Perdí un objeto</a>
+    <a routerLink="/found" routerLinkActive="active">Encontré un objeto</a>
+    <a routerLink="/publications" routerLinkActive="active">Buscar</a>
+    <a routerLink="/assistant" routerLinkActive="active">Asistente</a>
+    <a
+      routerLink="/recovery-requests"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      >Mis solicitudes</a
+    >
+    <a routerLink="/recovery-requests/received" routerLinkActive="active"
+      >Recibidas</a
+    >
+    <a
+      routerLink="/my-publications"
+      routerLinkActive="active"
+      data-testid="my-publications-link"
+      >Mis publicaciones</a
+    >
+    @if (identity.isAdmin()) {
+      <a
+        routerLink="/admin/publications"
+        routerLinkActive="active"
+        data-testid="moderation-link"
+        >Moderación</a
+      >
+    }
+  }
+
+  <div class="nav-right">
+    @if (session.activeProfile(); as profile) {
+      <span class="session-label" data-testid="active-demo-profile">
+        {{ profile.label }}
+      </span>
+      <button
+        type="button"
+        class="logout-button"
+        data-testid="logout-button"
+        (click)="logout()"
+      >
+        Cerrar sesión
+      </button>
+    }
+
+    <div class="theme-picker">
+      <button
+        type="button"
+        class="theme-toggle"
+        data-testid="theme-toggle"
+        aria-haspopup="menu"
+        [attr.aria-expanded]="appearanceOpen()"
+        aria-label="Elegir apariencia"
+        title="Elegir apariencia"
+        (click)="toggleAppearance()"
+      >
+        <span aria-hidden="true">◐</span>
+        <span class="theme-toggle-label">Apariencia</span>
+      </button>
+
+      @if (appearanceOpen()) {
+        <div class="theme-menu" role="menu" aria-label="Apariencia">
+          @for (option of appearanceOptions; track option.mode + option.variant) {
+            <button
+              type="button"
+              class="theme-option"
+              role="menuitemradio"
+              [attr.aria-checked]="
+                theme.mode() === option.mode && theme.variant() === option.variant
+              "
+              [attr.data-testid]="
+                'theme-option-' + option.mode + '-' + option.variant
+              "
+              (click)="chooseAppearance(option.mode, option.variant)"
+            >
+              <span
+                class="theme-swatch"
+                [class]="'theme-swatch ' + option.swatchClass"
+                aria-hidden="true"
+              ></span>
+              <span>{{ option.label }}</span>
+            </button>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</nav>
+<router-outlet />
+@if (session.isAuthenticated()) {
+  <app-assistant-widget />
+}

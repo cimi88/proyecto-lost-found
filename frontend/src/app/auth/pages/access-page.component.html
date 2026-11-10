@@ -1,0 +1,41 @@
+<section class="auth-page">
+  <header class="auth-header">
+    <p class="eyebrow">Lost &amp; Found</p>
+    <h1>Acceso a LostFound</h1>
+    <p class="subtitle">
+      Elegí una opción para entrar a la plataforma. El acceso es una
+      demostración local y no representa autenticación real.
+    </p>
+  </header>
+
+  <div class="access-options">
+    <a
+      class="access-option"
+      routerLink="/register"
+      data-testid="access-register"
+    >
+      <span class="access-option-title">Registrarse</span>
+      <span class="access-option-copy">
+        Conocé el formulario de registro previsto. La creación real de cuentas
+        todavía no está habilitada.
+      </span>
+    </a>
+
+    <a
+      class="access-option"
+      routerLink="/login"
+      data-testid="access-login"
+    >
+      <span class="access-option-title">Iniciar sesión</span>
+      <span class="access-option-copy">
+        Entrá con uno de los perfiles demo existentes para recorrer LostFound.
+      </span>
+    </a>
+  </div>
+
+  <div class="demo-note" role="note" data-testid="access-demo-note">
+    <strong>Modo demostración.</strong>
+    No se solicitan credenciales reales. Los perfiles demo permiten probar las
+    funcionalidades existentes sin crear cuentas ni guardar contraseñas.
+  </div>
+</section>

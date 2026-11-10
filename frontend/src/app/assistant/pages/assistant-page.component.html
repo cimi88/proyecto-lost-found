@@ -1,0 +1,454 @@
+<section class="page" [class.compact]="compact()">
+  @if (!compact()) {
+    <header class="page-header">
+      <p class="eyebrow">Lost &amp; Found</p>
+      <h1>Asistente</h1>
+      <p class="subtitle">
+        El asistente puede explicar cómo usar LostFound y preparar publicaciones
+        de objetos perdidos o encontrados y solicitudes de recuperación. Antes
+        de ejecutar una operación, muestra una vista previa y requiere tu
+        confirmación.
+      </p>
+    </header>
+
+    <div class="scope-note">
+      No busca publicaciones, no aprueba, rechaza, cancela ni registra
+      devoluciones, y no ejecuta acciones administrativas. La operación se
+      ejecuta recién cuando pulsás Confirmar; el modelo no ejecuta directamente.
+    </div>
+  }
+
+  <div class="assistant-toolbar">
+    <button
+      type="button"
+      class="secondary history-toggle"
+      data-testid="assistant-history-toggle"
+      [attr.aria-expanded]="historyOpen()"
+      (click)="toggleHistory()"
+    >
+      Historial ({{ historyItems().length }})
+    </button>
+
+    @if (currentConversation().continuedFrom; as origin) {
+      <span class="continuation-note">
+        Nueva conversación basada en «{{ origin.title || 'conversación anterior' }}».
+      </span>
+    }
+  </div>
+
+  @if (historyOpen()) {
+    <section class="history-panel" data-testid="assistant-history">
+      <div class="history-panel-header">
+        <h2>Conversaciones</h2>
+        <button
+          type="button"
+          class="secondary"
+          data-testid="assistant-new-conversation"
+          (click)="startNewConversation()"
+        >
+          Nueva conversación
+        </button>
+      </div>
+
+      @if (historyItems().length === 0) {
+        <p class="history-empty">Todavía no hay conversaciones anteriores.</p>
+      } @else {
+        <ul class="history-list">
+          @for (conversation of historyItems(); track conversation.id) {
+            <li class="history-row">
+              <button
+                type="button"
+                class="history-item"
+                [class.history-current]="isCurrentConversation(conversation.id)"
+                [attr.aria-current]="isCurrentConversation(conversation.id) ? 'true' : null"
+                (click)="selectConversation(conversation.id)"
+              >
+                <span class="history-item-title">{{
+                  conversationTitle(conversation)
+                }}</span>
+                <span class="history-item-date">{{
+                  conversation.updatedAt | date: "dd/MM/yyyy HH:mm"
+                }}</span>
+                @if (isCurrentConversation(conversation.id)) {
+                  <span class="history-current-label">Actual</span>
+                } @else {
+                  <span class="history-archived-label">Histórica</span>
+                }
+              </button>
+              <button
+                type="button"
+                class="secondary history-delete"
+                [class.history-delete-busy]="
+                  deleteInProgress() === conversation.id ||
+                  deleteVerificationInProgress() === conversation.id
+                "
+                [class.history-delete-blocked]="
+                  deleteButtonBlocked(conversation)
+                "
+                data-testid="assistant-delete-conversation"
+                [disabled]="deleteButtonDisabled()"
+                [attr.aria-disabled]="
+                  deleteButtonBlocked(conversation) ? 'true' : null
+                "
+                [attr.title]="deleteButtonTitle(conversation)"
+                [attr.aria-label]="deleteButtonTitle(conversation)"
+                [attr.aria-describedby]="deleteReasonId(conversation)"
+                (click)="requestDeleteConversation(conversation)"
+              >
+                {{ deleteButtonLabel(conversation) }}
+              </button>
+              <span
+                class="sr-only"
+                [id]="deleteReasonId(conversation)"
+              >
+                {{ deleteButtonTitle(conversation) }}
+              </span>
+
+              @if (deleteCandidate()?.id === conversation.id) {
+                <div
+                  class="history-delete-confirm"
+                  data-testid="assistant-delete-confirmation"
+                >
+                  @if (isRemotelyArchived(conversation)) {
+                    <p class="history-delete-warning">
+                      Este chat ya fue archivado en el servidor. Se reintentará
+                      limpiar únicamente la copia local, sin ejecutar
+                      operaciones de negocio.
+                    </p>
+                  }
+                  @if (deleteWarning(conversation); as warning) {
+                    <p
+                      class="history-delete-warning"
+                      data-testid="assistant-delete-warning"
+                    >
+                      {{ warning }}
+                    </p>
+                  }
+                  <p>
+                    ¿Eliminar «{{ conversationTitle(conversation) }}»? Esta
+                    acción quitará sus mensajes y resultados locales.
+                  </p>
+                  <div class="history-delete-actions">
+                    <button
+                      type="button"
+                      data-testid="assistant-confirm-delete"
+                      [disabled]="deleteInProgress() === conversation.id"
+                      (click)="confirmDeleteConversation()"
+                    >
+                      {{
+                        isRemotelyArchived(conversation)
+                          ? 'Reintentar limpieza local'
+                          : 'Eliminar definitivamente'
+                      }}
+                    </button>
+                    <button
+                      type="button"
+                      class="secondary"
+                      data-testid="assistant-cancel-delete"
+                      [disabled]="deleteInProgress() === conversation.id"
+                      (click)="cancelDeleteConversation()"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+
+  @if (storageError(); as message) {
+    <div class="alert alert-error" role="alert" data-testid="assistant-storage-error">
+      <p>{{ message }}</p>
+    </div>
+  }
+
+  @if (deleteError(); as message) {
+    <div class="alert alert-error" role="alert" data-testid="assistant-delete-error">
+      <p>{{ message }}</p>
+    </div>
+  }
+
+  @if (currentConversationArchivedRemotely()) {
+    <div class="alert alert-error" role="alert" data-testid="assistant-remote-archived">
+      <p>
+        Esta conversación ya fue archivada en el servidor, pero todavía no se
+        pudo limpiar su copia local. No se pueden ejecutar nuevas acciones.
+        Usá «Reintentar limpieza» en el historial.
+      </p>
+    </div>
+  }
+
+  @if (selectedConversation(); as historical) {
+    <section class="history-banner" data-testid="assistant-history-banner">
+      <p>
+        Conversación histórica: «{{ conversationTitle(historical) }}». Es de
+        solo lectura.
+      </p>
+      <div class="history-banner-actions">
+        <button
+          type="button"
+          class="secondary"
+          data-testid="assistant-return-current"
+          (click)="returnToCurrentConversation()"
+        >
+          Volver a la conversación actual
+        </button>
+        <button
+          type="button"
+          data-testid="assistant-continue-history"
+          (click)="continueSelectedConversation()"
+        >
+          Continuar en una conversación nueva
+        </button>
+      </div>
+    </section>
+  }
+
+  @if (messages().length === 0) {
+    <div class="empty-state" data-testid="assistant-empty">
+      <p>¿Con qué necesitás ayuda?</p>
+      <div class="quick-prompts">
+        @for (prompt of quickPrompts; track prompt) {
+          <button type="button" class="secondary" (click)="send(prompt)">
+            {{ prompt }}
+          </button>
+        }
+      </div>
+    </div>
+  } @else {
+    <ul class="conversation" data-testid="assistant-conversation">
+      @for (message of messages(); track $index) {
+        <li
+          class="message"
+          [class.message-user]="message.role === 'user'"
+          [class.message-assistant]="message.role === 'assistant'"
+        >
+          <div class="message-meta">
+            <span>{{ message.role === 'user' ? 'Vos' : 'Asistente' }}</span>
+            @if (message.roleLabel) {
+              <span class="role-badge">{{ message.roleLabel }}</span>
+            }
+          </div>
+          @if (message.role === 'assistant') {
+            <div
+              class="message-content"
+              [innerHTML]="renderMarkdown(message.content)"
+            ></div>
+
+            @if (message.pendingAction; as action) {
+              <div
+                class="pending-action"
+                data-testid="assistant-pending-action"
+              >
+                <div class="pending-action-header">
+                  <div>
+                    <span class="pending-action-eyebrow">Vista previa</span>
+                    <h3>{{ action.title }}</h3>
+                  </div>
+                  <span class="pending-action-status">
+                    @switch (action.status) {
+                      @case ('PENDING') {
+                        Todavía no ejecutada
+                      }
+                      @case ('EXECUTING') {
+                        Ejecutando…
+                      }
+                      @case ('COMPLETED') {
+                        Completada
+                      }
+                      @case ('CANCELLED') {
+                        Cancelada
+                      }
+                      @case ('EXPIRED') {
+                        Vencida
+                      }
+                      @case ('SUPERSEDED') {
+                        Invalidada
+                      }
+                      @case ('UNVERIFIED') {
+                        No verificable
+                      }
+                      @default {
+                        Fallida
+                      }
+                    }
+                  </span>
+                </div>
+
+                <dl class="pending-action-fields">
+                  @for (field of action.fields; track field.label) {
+                    <div>
+                      <dt>{{ field.label }}</dt>
+                      <dd>{{ field.value }}</dd>
+                    </div>
+                  }
+                </dl>
+
+                @if (action.status === 'PENDING' && !isReadOnly()) {
+                  <p class="pending-action-note">
+                    Revisá los datos. La acción quedó preparada y todavía no se
+                    ejecutó. Vence:
+                    <time [attr.datetime]="action.expires_at">
+                      {{ action.expires_at | date: "dd/MM/yyyy HH:mm 'UTC'" : '+0000' }}
+                    </time>
+                  </p>
+                  <div class="pending-action-actions">
+                    <button
+                      type="button"
+                      data-testid="assistant-action-confirm"
+                      [disabled]="
+                        actionInProgress() === action.action_id ||
+                        !canConfirmPendingAction(action)
+                      "
+                      (click)="confirmPendingAction(action)"
+                    >
+                      {{ actionInProgress() === action.action_id ? 'Confirmando…' : 'Confirmar' }}
+                    </button>
+                    <button
+                      type="button"
+                      class="secondary"
+                      data-testid="assistant-action-cancel"
+                      [disabled]="
+                        actionInProgress() === action.action_id ||
+                        currentConversationArchivedRemotely()
+                      "
+                      (click)="cancelPendingAction(action)"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                  @if (!canConfirmPendingAction(action)) {
+                    <p class="pending-action-note">
+                      La capacidad de confirmación no está disponible en esta
+                      sesión. Prepará una acción nueva si todavía la necesitás.
+                    </p>
+                  }
+                } @else if (action.status === 'PENDING' && isReadOnly()) {
+                  <p class="pending-action-note">
+                    Acción histórica. No se puede confirmar ni cancelar desde
+                    esta conversación.
+                  </p>
+                }
+
+                @if (
+                  !isReadOnly() &&
+                  (action.status === 'PENDING' || action.status === 'EXECUTING')
+                ) {
+                  @if (actionError(); as error) {
+                    <p class="pending-action-error" role="alert">
+                      {{ error }}
+                    </p>
+                  }
+                }
+
+                @if (action.status === 'COMPLETED') {
+                  <p class="pending-action-note">
+                    Operación completada correctamente.
+                    @if (actionResultLink(action); as link) {
+                      <a [routerLink]="link">{{ actionResultTitle(action) }}</a>
+                    }
+                  </p>
+                }
+
+                @if (action.status === 'CANCELLED') {
+                  <p class="pending-action-note">
+                    La acción fue cancelada y no se ejecutó.
+                  </p>
+                }
+
+                @if (action.status === 'FAILED') {
+                  <p class="pending-action-error" role="alert">
+                    {{ action.errorMessage ?? 'La acción no pudo completarse.' }}
+                  </p>
+                }
+
+                @if (action.status === 'UNVERIFIED') {
+                  <p class="pending-action-error" role="alert">
+                    {{ action.errorMessage ?? 'No se pudo verificar el estado de la acción.' }}
+                  </p>
+                  @if (actionResultLink(action); as link) {
+                    <p class="pending-action-note">
+                      Resultado conservado localmente, sin verificación del
+                      servidor:
+                      <a [routerLink]="link">{{ actionResultTitle(action) }}</a>
+                    </p>
+                  }
+                }
+
+                @if (action.status === 'EXPIRED' || action.status === 'SUPERSEDED') {
+                  <p class="pending-action-note">
+                    Esta acción ya no puede ejecutarse.
+                  </p>
+                }
+              </div>
+            }
+          } @else {
+            <p class="message-content">{{ message.content }}</p>
+          }
+        </li>
+      }
+    </ul>
+  }
+
+  @if (loading()) {
+    <p
+      class="status"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      data-testid="assistant-loading"
+    >
+      <span class="thinking-loader" aria-hidden="true"></span>
+      <span class="sr-only">El asistente está pensando</span>
+    </p>
+  }
+
+  @if (errorMessage(); as message) {
+    <div class="alert alert-error" role="alert" data-testid="assistant-error">
+      <p>{{ message }}</p>
+    </div>
+  }
+
+  @if (isReadOnly()) {
+    <div class="history-readonly" data-testid="assistant-history-readonly">
+      Estás consultando una conversación histórica. Usá “Continuar en una
+      conversación nueva” para seguir hablando con ese contexto.
+    </div>
+  } @else {
+    <form
+      class="chat-form"
+      (submit)="$event.preventDefault(); send()"
+      novalidate
+    >
+      <label for="assistant-message">Tu pregunta</label>
+      <textarea
+        id="assistant-message"
+        [formControl]="input"
+        rows="3"
+        maxlength="1000"
+        placeholder="Ejemplo: ¿Cómo solicito recuperar un objeto?"
+        data-testid="assistant-input"
+        (keydown)="onKeydown($event)"
+      ></textarea>
+      <p class="character-counter" data-testid="assistant-character-counter">
+        {{ questionCharacterCount() }} / 1000
+      </p>
+      @if (input.invalid && input.touched) {
+        <p class="field-error" data-testid="assistant-field-error">
+          @if (input.hasError('required')) {
+            Escribí una pregunta.
+          } @else if (input.hasError('maxlength')) {
+            La pregunta no puede superar los 1000 caracteres.
+          }
+        </p>
+      }
+      <button type="submit" [disabled]="loading()" data-testid="assistant-send">
+        {{ loading() ? 'Enviando…' : 'Enviar' }}
+      </button>
+    </form>
+  }
+</section>

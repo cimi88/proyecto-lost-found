@@ -1,0 +1,265 @@
+<section class="page">
+  <header class="page-header">
+    <p class="eyebrow">Lost &amp; Found</p>
+    <h1>Solicitudes recibidas</h1>
+    <p class="subtitle">
+      Aprobá o rechazá las solicitudes pendientes de tus publicaciones
+      encontradas. Al aprobar, la publicación queda reservada.
+    </p>
+  </header>
+
+  @if (invalidPublicationFilter()) {
+    <div class="alert alert-warning" role="alert" data-testid="received-requests-invalid-filter">
+      <p>
+        El filtro de publicación no es válido. Se muestran todas las solicitudes
+        recibidas.
+      </p>
+    </div>
+  }
+
+  @if (loading()) {
+    <p class="status" role="status" data-testid="received-requests-loading">
+      Cargando solicitudes recibidas…
+    </p>
+  } @else if (errorMessage(); as message) {
+    <div class="alert alert-error" role="alert" data-testid="received-requests-error">
+      <p>{{ message }}</p>
+      <button
+        type="button"
+        class="secondary"
+        data-testid="received-requests-retry"
+        (click)="load()"
+      >
+        Reintentar
+      </button>
+    </div>
+  } @else if (requests().length === 0) {
+    <p class="status" data-testid="received-requests-empty">
+      Todavía no recibiste solicitudes de recuperación.
+    </p>
+  } @else if (publicationFilterId() && filteredRequests().length === 0) {
+    <div class="status" data-testid="received-requests-filter-empty">
+      <p>No hay solicitudes recibidas para esta publicación.</p>
+      <a
+        class="request-link"
+        routerLink="/recovery-requests/received"
+        data-testid="received-requests-clear-filter"
+      >
+        Ver todas las solicitudes recibidas
+      </a>
+    </div>
+  } @else {
+    @if (publicationFilterId()) {
+      <div class="filter-banner" data-testid="received-requests-filter-banner">
+        <span>
+          Mostrando solicitudes de
+          <strong>{{ filteredPublicationTitle() ?? 'la publicación seleccionada' }}</strong>.
+        </span>
+        <a
+          class="request-link"
+          routerLink="/recovery-requests/received"
+          data-testid="received-requests-clear-filter"
+        >
+          Ver todas
+        </a>
+      </div>
+    }
+
+    @if (actionError(); as message) {
+      <div class="alert alert-error" role="alert" data-testid="received-requests-action-error">
+        <p>{{ message }}</p>
+      </div>
+    }
+
+    <ul class="request-list">
+      @for (request of filteredRequests(); track request.id) {
+        <li class="request-card" [attr.data-testid]="'received-request-' + request.id">
+          <div class="request-card-header">
+            <span class="request-status">{{ statusLabels[request.status] }}</span>
+            <span class="publication-status">
+              {{ publicationStatusLabels[request.publication.status] }}
+            </span>
+          </div>
+
+          <h2>{{ request.publication.title }}</h2>
+          <p class="request-meta">
+            Solicitante: {{ request.requesterDisplayName }} ·
+            {{ typeLabels[request.publication.type] }}
+          </p>
+
+          @if (request.notes) {
+            <p class="request-notes">{{ request.notes }}</p>
+          }
+
+          @if (request.cancellationReason) {
+            <p class="cancellation-reason">
+              Motivo de cancelación: {{ request.cancellationReason }}
+            </p>
+          }
+
+          @if (request.completedAt || request.returnNotes) {
+            <div
+              class="completion-summary"
+              [attr.data-testid]="'received-completion-' + request.id"
+            >
+              @if (request.completedAt) {
+                <p>
+                  <strong>Devuelta:</strong>
+                  <time [attr.datetime]="request.completedAt">
+                    {{ request.completedAt | date: "dd/MM/yyyy HH:mm 'UTC'" : '+0000' }}
+                  </time>
+                </p>
+              }
+              @if (request.returnNotes) {
+                <p>Notas de devolución: {{ request.returnNotes }}</p>
+              }
+            </div>
+          }
+
+          <dl class="request-dates">
+            <div>
+              <dt>Creada</dt>
+              <dd>
+                <time [attr.datetime]="request.createdAt">
+                  {{ request.createdAt | date: "dd/MM/yyyy HH:mm 'UTC'" : '+0000' }}
+                </time>
+              </dd>
+            </div>
+            <div>
+              <dt>Última actualización</dt>
+              <dd>
+                <time [attr.datetime]="request.updatedAt">
+                  {{ request.updatedAt | date: "dd/MM/yyyy HH:mm 'UTC'" : '+0000' }}
+                </time>
+              </dd>
+            </div>
+          </dl>
+
+          <div class="request-actions">
+            @if (request.publication.status === 'ACTIVE') {
+              <a
+                class="request-link"
+                [routerLink]="['/publications', request.publication.id]"
+              >
+                Ver publicación
+              </a>
+            }
+
+            @if (request.status === 'PENDING') {
+              <button
+                type="button"
+                [disabled]="actionInProgress() === request.id"
+                [attr.data-testid]="'approve-' + request.id"
+                (click)="approve(request.id)"
+              >
+                {{ actionInProgress() === request.id ? 'Procesando…' : 'Aprobar' }}
+              </button>
+              <button
+                type="button"
+                class="danger"
+                [disabled]="actionInProgress() === request.id"
+                [attr.data-testid]="'reject-' + request.id"
+                (click)="reject(request.id)"
+              >
+                Rechazar
+              </button>
+            }
+
+            @if (request.status === 'APPROVED') {
+              @if (returningId() === request.id) {
+                <form
+                  class="return-form"
+                  (submit)="$event.preventDefault(); submitReturn()"
+                  novalidate
+                >
+                  <label [for]="'received-return-notes-' + request.id">
+                    Notas de devolución (opcional)
+                  </label>
+                  <textarea
+                    [id]="'received-return-notes-' + request.id"
+                    [formControl]="returnForm"
+                    maxlength="500"
+                    rows="2"
+                    placeholder="Podés agregar una observación sobre la entrega."
+                    [attr.data-testid]="'received-return-notes-' + request.id"
+                  ></textarea>
+                  <p class="hint">
+                    Las notas son opcionales y admiten hasta 500 caracteres.
+                  </p>
+                  <div class="return-actions">
+                    <button
+                      type="submit"
+                      [disabled]="actionInProgress() === request.id"
+                      [attr.data-testid]="'received-return-confirm-' + request.id"
+                    >
+                      {{ actionInProgress() === request.id ? 'Registrando…' : 'Confirmar devolución' }}
+                    </button>
+                    <button
+                      type="button"
+                      class="secondary"
+                      (click)="cancelReturn()"
+                    >
+                      Volver
+                    </button>
+                  </div>
+                </form>
+              } @else if (cancellingId() === request.id) {
+                <form
+                  class="cancel-form"
+                  (submit)="$event.preventDefault(); submitCancel()"
+                  novalidate
+                >
+                  <label [for]="'received-cancel-reason-' + request.id">
+                    Motivo de cancelación
+                  </label>
+                  <textarea
+                    [id]="'received-cancel-reason-' + request.id"
+                    [formControl]="cancelForm"
+                    maxlength="500"
+                    rows="2"
+                    placeholder="Contá brevemente por qué cancelás la reserva."
+                    [attr.data-testid]="'received-cancel-reason-' + request.id"
+                  ></textarea>
+                  <div class="cancel-actions">
+                    <button
+                      type="submit"
+                      [disabled]="actionInProgress() === request.id"
+                      [attr.data-testid]="'received-cancel-confirm-' + request.id"
+                    >
+                      {{ actionInProgress() === request.id ? 'Cancelando…' : 'Confirmar cancelación' }}
+                    </button>
+                    <button
+                      type="button"
+                      class="secondary"
+                      (click)="cancelEdit()"
+                    >
+                      Volver
+                    </button>
+                  </div>
+                </form>
+              } @else {
+                <button
+                  type="button"
+                  [disabled]="actionInProgress() === request.id"
+                  [attr.data-testid]="'received-return-open-' + request.id"
+                  (click)="startReturn(request.id)"
+                >
+                  Registrar devolución
+                </button>
+                <button
+                  type="button"
+                  class="secondary"
+                  [disabled]="actionInProgress() === request.id"
+                  [attr.data-testid]="'received-cancel-open-' + request.id"
+                  (click)="startCancel(request.id)"
+                >
+                  Cancelar reserva
+                </button>
+              }
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</section>

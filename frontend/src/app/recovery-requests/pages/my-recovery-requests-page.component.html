@@ -1,0 +1,163 @@
+<section class="page">
+  <header class="page-header">
+    <p class="eyebrow">Lost &amp; Found</p>
+    <h1>Mis solicitudes</h1>
+    <p class="subtitle">
+      Seguí el estado de las recuperaciones que pediste y cancelá las que ya no
+      necesites.
+    </p>
+  </header>
+
+  @if (loading()) {
+    <p class="status" role="status" data-testid="my-requests-loading">
+      Cargando tus solicitudes…
+    </p>
+  } @else if (errorMessage(); as message) {
+    <div class="alert alert-error" role="alert" data-testid="my-requests-error">
+      <p>{{ message }}</p>
+      <button
+        type="button"
+        class="secondary"
+        data-testid="my-requests-retry"
+        (click)="load()"
+      >
+        Reintentar
+      </button>
+    </div>
+  } @else if (requests().length === 0) {
+    <p class="status" data-testid="my-requests-empty">
+      Todavía no pediste ninguna recuperación.
+    </p>
+  } @else {
+    @if (actionError(); as message) {
+      <div class="alert alert-error" role="alert" data-testid="my-requests-action-error">
+        <p>{{ message }}</p>
+      </div>
+    }
+
+    <ul class="request-list">
+      @for (request of requests(); track request.id) {
+        <li class="request-card" [attr.data-testid]="'my-request-' + request.id">
+          <div class="request-card-header">
+            <span class="request-status">{{ statusLabels[request.status] }}</span>
+            <span class="publication-status">
+              {{ publicationStatusLabels[request.publication.status] }}
+            </span>
+          </div>
+
+          <h2>{{ request.publication.title }}</h2>
+          <p class="request-meta">
+            {{ typeLabels[request.publication.type] }} ·
+            {{ request.publication.location }}
+          </p>
+
+          @if (request.notes) {
+            <p class="request-notes">{{ request.notes }}</p>
+          }
+
+          @if (request.cancellationReason) {
+            <p class="cancellation-reason">
+              Motivo de cancelación: {{ request.cancellationReason }}
+            </p>
+          }
+
+          @if (request.completedAt || request.returnNotes) {
+            <div
+              class="completion-summary"
+              [attr.data-testid]="'my-completion-' + request.id"
+            >
+              @if (request.completedAt) {
+                <p>
+                  <strong>Devuelta:</strong>
+                  <time [attr.datetime]="request.completedAt">
+                    {{ request.completedAt | date: "dd/MM/yyyy HH:mm 'UTC'" : '+0000' }}
+                  </time>
+                </p>
+              }
+              @if (request.returnNotes) {
+                <p>Notas de devolución: {{ request.returnNotes }}</p>
+              }
+            </div>
+          }
+
+          <dl class="request-dates">
+            <div>
+              <dt>Creada</dt>
+              <dd>
+                <time [attr.datetime]="request.createdAt">
+                  {{ request.createdAt | date: "dd/MM/yyyy HH:mm 'UTC'" : '+0000' }}
+                </time>
+              </dd>
+            </div>
+            <div>
+              <dt>Última actualización</dt>
+              <dd>
+                <time [attr.datetime]="request.updatedAt">
+                  {{ request.updatedAt | date: "dd/MM/yyyy HH:mm 'UTC'" : '+0000' }}
+                </time>
+              </dd>
+            </div>
+          </dl>
+
+          <div class="request-actions">
+            @if (request.publication.status === 'ACTIVE') {
+              <a
+                class="request-link"
+                [routerLink]="['/publications', request.publication.id]"
+              >
+                Ver publicación
+              </a>
+            }
+
+            @if (canCancel(request)) {
+              @if (cancellingId() === request.id) {
+                <form
+                  class="cancel-form"
+                  (submit)="$event.preventDefault(); submitCancel()"
+                  novalidate
+                >
+                  <label [for]="'cancel-reason-' + request.id">
+                    Motivo de cancelación
+                  </label>
+                  <textarea
+                    [id]="'cancel-reason-' + request.id"
+                    [formControl]="cancelForm"
+                    maxlength="500"
+                    rows="2"
+                    placeholder="Contá brevemente por qué cancelás."
+                    [attr.data-testid]="'cancel-reason-' + request.id"
+                  ></textarea>
+                  <div class="cancel-actions">
+                    <button
+                      type="submit"
+                      [disabled]="submitting()"
+                      [attr.data-testid]="'cancel-confirm-' + request.id"
+                    >
+                      {{ submitting() ? 'Cancelando…' : 'Confirmar cancelación' }}
+                    </button>
+                    <button
+                      type="button"
+                      class="secondary"
+                      (click)="cancelEdit()"
+                    >
+                      Volver
+                    </button>
+                  </div>
+                </form>
+              } @else {
+                <button
+                  type="button"
+                  class="secondary"
+                  [attr.data-testid]="'cancel-open-' + request.id"
+                  (click)="startCancel(request.id)"
+                >
+                  Cancelar solicitud
+                </button>
+              }
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</section>

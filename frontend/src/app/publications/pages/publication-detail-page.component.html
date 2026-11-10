@@ -1,0 +1,221 @@
+<section class="page">
+  <a
+    class="back-link"
+    [routerLink]="['/publications']"
+    [queryParams]="returnQueryParams()"
+    data-testid="back-link"
+  >
+    ← Volver a la búsqueda
+  </a>
+
+  @if (loading()) {
+    <p class="status" role="status" data-testid="loading">
+      Cargando publicación…
+    </p>
+  } @else if (notFound()) {
+    <div class="alert alert-not-found" data-testid="not-found">
+      <h1>Publicación no encontrada</h1>
+      <p>
+        La publicación que buscás no existe o ya no está activa. Puede haber
+        sido reservada, devuelta o cerrada.
+      </p>
+    </div>
+  } @else if (errorMessage(); as message) {
+    <div class="alert alert-error" role="alert" data-testid="error-panel">
+      <p>{{ message }}</p>
+      <button type="button" class="secondary" data-testid="retry-button" (click)="retry()">
+        Reintentar
+      </button>
+    </div>
+  } @else if (publication(); as item) {
+    <article class="detail-card" data-testid="detail">
+      <header class="detail-header">
+        <div class="badges">
+          <span class="type-badge" [class.type-found]="item.type === 'FOUND'">
+            {{ typeLabels[item.type] }}
+          </span>
+          <span class="status-badge">{{ statusLabels[item.status] }}</span>
+        </div>
+        <p class="eyebrow">Lost &amp; Found</p>
+        <h1>{{ item.title }}</h1>
+      </header>
+
+      <section class="detail-section" aria-labelledby="object-details-heading">
+        <h2 id="object-details-heading">Información del objeto</h2>
+        <dl class="detail-grid">
+          <div class="description-field">
+            <dt>Descripción</dt>
+            <dd>{{ item.description }}</dd>
+          </div>
+          <div>
+            <dt>Ubicación</dt>
+            <dd>{{ item.location }}</dd>
+          </div>
+          <div>
+            <dt>Categoría</dt>
+            <dd>{{ categoryLabels[item.category] }}</dd>
+          </div>
+          <div>
+            <dt>Tipo</dt>
+            <dd>{{ typeLabels[item.type] }}</dd>
+          </div>
+          <div>
+            <dt>Fecha del evento</dt>
+            <dd>
+              <time [attr.datetime]="item.eventDate">
+                {{ item.eventDate | date: 'dd/MM/yyyy' : '+0000' }}
+              </time>
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <section
+        class="detail-section"
+        aria-labelledby="publication-metadata-heading"
+      >
+        <h2 id="publication-metadata-heading">Metadatos de publicación</h2>
+        <dl class="detail-grid metadata-grid">
+          <div>
+            <dt>Estado</dt>
+            <dd>{{ statusLabels[item.status] }}</dd>
+          </div>
+          <div>
+            <dt>Identificador</dt>
+            <dd><code>{{ item.id }}</code></dd>
+          </div>
+          <div>
+            <dt>Creada</dt>
+            <dd>
+              <time [attr.datetime]="item.createdAt">
+                {{ item.createdAt | date: "dd/MM/yyyy HH:mm 'UTC'" : '+0000' }}
+              </time>
+            </dd>
+          </div>
+          <div>
+            <dt>Actualizada</dt>
+            <dd>
+              <time [attr.datetime]="item.updatedAt">
+                {{ item.updatedAt | date: "dd/MM/yyyy HH:mm 'UTC'" : '+0000' }}
+              </time>
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <section
+        class="detail-section matches-section"
+        aria-labelledby="publication-matches-heading"
+        data-testid="matches-section"
+      >
+        <h2 id="publication-matches-heading">Coincidencias sugeridas</h2>
+        <p class="matches-disclaimer">
+          Son sugerencias automáticas para ayudar a encontrar el objeto; no
+          confirman que sea la misma publicación.
+        </p>
+
+        @if (matchesLoading()) {
+          <p class="status" role="status" data-testid="matches-loading">
+            Buscando coincidencias…
+          </p>
+        } @else if (matchesErrorMessage(); as message) {
+          <div class="alert alert-error" role="alert" data-testid="matches-error">
+            <p>{{ message }}</p>
+            <button
+              type="button"
+              class="secondary"
+              data-testid="matches-retry-button"
+              (click)="retryMatches()"
+            >
+              Reintentar
+            </button>
+          </div>
+        } @else if (matches().length > 0) {
+          <ul class="match-list" data-testid="matches-list">
+            @for (match of matches(); track match.id) {
+              <li class="match-card" [attr.data-testid]="'match-' + match.id">
+                <div class="match-card-header">
+                  <span
+                    class="type-badge"
+                    [class.type-found]="match.candidate.type === 'FOUND'"
+                  >
+                    {{ typeLabels[match.candidate.type] }}
+                  </span>
+                  <span class="match-status">Sugerida</span>
+                  <span class="match-score">
+                    {{ match.score * 100 | number: '1.0-0' }}% de coincidencia
+                  </span>
+                </div>
+                <h3>{{ match.candidate.title }}</h3>
+                <p class="match-description">{{ match.candidate.description }}</p>
+                <dl class="match-meta">
+                  <div>
+                    <dt>Categoría</dt>
+                    <dd>{{ categoryLabels[match.candidate.category] }}</dd>
+                  </div>
+                  <div>
+                    <dt>Ubicación</dt>
+                    <dd>{{ match.candidate.location }}</dd>
+                  </div>
+                  <div>
+                    <dt>Fecha</dt>
+                    <dd>
+                      <time [attr.datetime]="match.candidate.eventDate">
+                        {{ match.candidate.eventDate | date: 'dd/MM/yyyy' : '+0000' }}
+                      </time>
+                    </dd>
+                  </div>
+                </dl>
+                <div class="match-explanation">
+                  <h4>Por qué puede coincidir</h4>
+                  <ul>
+                    <li>
+                      Texto: {{ match.scoreBreakdown.text.score * 100 | number: '1.0-0' }}%
+                    </li>
+                    <li>
+                      Categoría:
+                      {{ match.scoreBreakdown.category.score === 1 ? 'coincide' : 'diferente' }}
+                    </li>
+                    <li>
+                      Fecha: {{ match.eventDateDifferenceDays }}
+                      {{ match.eventDateDifferenceDays === 1 ? 'día' : 'días' }} de diferencia
+                    </li>
+                    <li>
+                      Ubicación: {{ match.scoreBreakdown.location.score * 100 | number: '1.0-0' }}%
+                    </li>
+                  </ul>
+                </div>
+                <div class="candidate-actions">
+                  <a
+                    class="candidate-detail-link"
+                    [routerLink]="['/publications', match.candidate.id]"
+                  >
+                    Ver detalle de la sugerencia
+                  </a>
+                  @if (match.candidate.type === 'FOUND') {
+                    <a
+                      class="candidate-detail-link recovery-request-link"
+                      [routerLink]="['/publications', match.candidate.id]"
+                      [fragment]="'solicitar-recuperacion'"
+                      data-testid="solicitar-recuperacion-sugerencia"
+                    >
+                      Solicitar recuperación
+                    </a>
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="status" data-testid="matches-empty">
+            Todavía no encontramos coincidencias sugeridas para esta publicación.
+          </p>
+        }
+      </section>
+
+      @if (item.type === 'FOUND' && item.status === 'ACTIVE') {
+        <app-recovery-request-panel [publicationId]="item.id" />
+      }
+    </article>
+  }
+</section>

@@ -1,0 +1,139 @@
+<section class="page">
+  <header class="page-header">
+    <p class="eyebrow">Lost &amp; Found · Administración</p>
+    <h1>Moderación de publicaciones</h1>
+    <p class="subtitle">
+      Revisá publicaciones activas de otros usuarios. Podés cerrar una
+      publicación únicamente cuando no tenga solicitudes pendientes o aprobadas.
+    </p>
+  </header>
+
+  @if (successMessage(); as message) {
+    <div class="alert alert-success" role="status" data-testid="admin-publications-success">
+      <p>{{ message }}</p>
+    </div>
+  }
+
+  @if (loading()) {
+    <p class="status" role="status" data-testid="admin-publications-loading">
+      Cargando publicaciones para moderar…
+    </p>
+  } @else if (errorMessage(); as message) {
+    <div class="alert alert-error" role="alert" data-testid="admin-publications-error">
+      <p>{{ message }}</p>
+      <button
+        type="button"
+        class="secondary"
+        data-testid="admin-publications-retry"
+        (click)="load()"
+      >
+        Reintentar
+      </button>
+    </div>
+  } @else if (publications().length === 0) {
+    <p class="status" data-testid="admin-publications-empty">
+      No hay publicaciones activas de otros usuarios para moderar.
+    </p>
+  } @else {
+    @if (actionError(); as message) {
+      <div class="alert alert-error" role="alert" data-testid="admin-publications-action-error">
+        <p>{{ message }}</p>
+      </div>
+    }
+
+    <ul class="publication-list">
+      @for (publication of publications(); track publication.id) {
+        <li
+          class="publication-card"
+          [attr.data-testid]="'admin-publication-' + publication.id"
+        >
+          <div class="publication-card-header">
+            <span
+              class="type-badge"
+              [class.type-found]="publication.type === 'FOUND'"
+            >
+              {{ typeLabels[publication.type] }}
+            </span>
+            <span class="status-badge status-active">
+              {{ statusLabels[publication.status] }}
+            </span>
+            <span class="category">{{ categoryLabels[publication.category] }}</span>
+          </div>
+
+          <h2>{{ publication.title }}</h2>
+          <p class="description">{{ publication.description }}</p>
+
+          <dl class="publication-meta">
+            <div>
+              <dt>Ubicación</dt>
+              <dd>{{ publication.location }}</dd>
+            </div>
+            <div>
+              <dt>Fecha del evento</dt>
+              <dd>
+                <time [attr.datetime]="publication.eventDate">
+                  {{ publication.eventDate | date: 'dd/MM/yyyy' : '+0000' }}
+                </time>
+              </dd>
+            </div>
+            <div>
+              <dt>Actualizada</dt>
+              <dd>
+                <time [attr.datetime]="publication.updatedAt">
+                  {{ publication.updatedAt | date: "dd/MM/yyyy HH:mm 'UTC'" : '+0000' }}
+                </time>
+              </dd>
+            </div>
+          </dl>
+
+          <div class="publication-actions">
+            <button
+              type="button"
+              class="secondary"
+              [disabled]="actionInProgress() === publication.id"
+              [attr.data-testid]="'admin-publication-close-' + publication.id"
+              (click)="startClose(publication.id)"
+            >
+              Cerrar publicación
+            </button>
+          </div>
+
+          @if (closingId() === publication.id) {
+            <div
+              class="close-confirmation"
+              role="group"
+              aria-label="Confirmar cierre de publicación"
+              [attr.data-testid]="'admin-publication-close-confirmation-' + publication.id"
+            >
+              <p>
+                ¿Cerrar «{{ publication.title }}»? Dejará de ser visible
+                públicamente, pero no se borrará. Si tiene solicitudes pendientes
+                o aprobadas, el cierre será rechazado.
+              </p>
+              <div class="confirmation-actions">
+                <button
+                  type="button"
+                  class="danger"
+                  [disabled]="actionInProgress() === publication.id"
+                  [attr.data-testid]="'admin-publication-close-confirm-' + publication.id"
+                  (click)="confirmClose()"
+                >
+                  {{ actionInProgress() === publication.id ? 'Cerrando…' : 'Confirmar cierre' }}
+                </button>
+                <button
+                  type="button"
+                  class="secondary"
+                  [disabled]="actionInProgress() === publication.id"
+                  [attr.data-testid]="'admin-publication-close-cancel-' + publication.id"
+                  (click)="cancelClose()"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  }
+</section>

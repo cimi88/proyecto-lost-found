@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>LostfoundFrontend</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script>
+    (function () {
+      try {
+        var mode = localStorage.getItem('lostfound-theme-mode') ||
+          localStorage.getItem('lostfound-theme');
+        var variant = localStorage.getItem('lostfound-theme-variant');
+        if (mode !== 'light' && mode !== 'dark') {
+          mode = window.matchMedia('(prefers-color-scheme: dark)').matches
+            ? 'dark'
+            : 'light';
+        }
+        if (variant !== '1' && variant !== '2') {
+          variant = '1';
+        }
+        document.documentElement.setAttribute('data-theme', mode);
+        document.documentElement.setAttribute('data-variant', variant);
+        document.documentElement.style.colorScheme = mode;
+      } catch (error) {
+        document.documentElement.setAttribute('data-theme', 'light');
+        document.documentElement.setAttribute('data-variant', '1');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>

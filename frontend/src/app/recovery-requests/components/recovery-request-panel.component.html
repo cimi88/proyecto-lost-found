@@ -1,0 +1,98 @@
+<section
+  id="solicitar-recuperacion"
+  class="request-section"
+  aria-labelledby="recovery-request-heading"
+  data-testid="request-section"
+>
+  <h2 id="recovery-request-heading" tabindex="-1">Solicitar recuperación</h2>
+
+  @if (loading()) {
+    <p class="status" role="status" data-testid="request-loading">
+      Verificando si ya tenés una solicitud…
+    </p>
+  } @else if (errorMessage(); as message) {
+    <div class="alert alert-error" role="alert" data-testid="request-error">
+      <p>{{ message }}</p>
+      <button
+        type="button"
+        class="secondary"
+        data-testid="request-retry-button"
+        (click)="loadOwnRequest()"
+      >
+        Reintentar
+      </button>
+    </div>
+  } @else if (activeRequest(); as request) {
+    <div class="request-card" data-testid="own-request">
+      <div class="request-card-header">
+        <span class="request-status">{{ statusLabels[request.status] }}</span>
+        <span class="request-state-note">
+          {{ request.status === 'APPROVED' ? 'Publicación reservada para vos' : 'Esperando decisión del propietario' }}
+        </span>
+      </div>
+
+      @if (successMessage(); as message) {
+        <p class="success" role="status" data-testid="request-success">
+          {{ message }}
+        </p>
+      }
+
+      @if (request.notes) {
+        <p class="request-notes">{{ request.notes }}</p>
+      }
+
+      <dl class="request-dates">
+        <div>
+          <dt>Creada</dt>
+          <dd>
+            <time [attr.datetime]="request.createdAt">
+              {{ request.createdAt | date: "dd/MM/yyyy HH:mm 'UTC'" : '+0000' }}
+            </time>
+          </dd>
+        </div>
+        <div>
+          <dt>Última actualización</dt>
+          <dd>
+            <time [attr.datetime]="request.updatedAt">
+              {{ request.updatedAt | date: "dd/MM/yyyy HH:mm 'UTC'" : '+0000' }}
+            </time>
+          </dd>
+        </div>
+      </dl>
+
+      <a class="request-link" routerLink="/recovery-requests">
+        Ver mis solicitudes
+      </a>
+    </div>
+  } @else {
+    <p class="request-intro">
+      Si este objeto es tuyo, podés pedirle al propietario que lo reserve para
+      vos. La solicitud no confirma la propiedad por sí sola.
+    </p>
+
+    <form class="request-form" (submit)="$event.preventDefault(); submit()" novalidate>
+      <div class="field">
+        <label for="recovery-request-notes">Notas (opcional)</label>
+        <textarea
+          id="recovery-request-notes"
+          [formControl]="requestForm"
+          maxlength="500"
+          rows="3"
+          placeholder="Contá alguna seña o detalle que ayude a coordinar."
+          data-testid="request-notes"
+          (keydown)="onNotesKeydown($event)"
+        ></textarea>
+        <p class="hint">Máximo 500 caracteres.</p>
+        @if (fieldError(); as message) {
+          <p class="field-error" role="alert" data-testid="request-field-error">
+            {{ message }}
+          </p>
+        }
+      </div>
+
+      <button type="submit" [disabled]="submitting()" data-testid="request-submit">
+        {{ submitting() ? 'Enviando…' : 'Enviar solicitud' }}
+      </button>
+    </form>
+  }
+</section>

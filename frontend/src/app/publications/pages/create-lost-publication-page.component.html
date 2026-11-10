@@ -1,0 +1,142 @@
+<section class="page">
+  <header class="page-header">
+    <p class="eyebrow">Lost &amp; Found</p>
+    <h1>Registrar objeto perdido</h1>
+    <p class="subtitle">
+      Completá los datos del objeto. La publicación quedará activa y asociada
+      al usuario de demostración.
+    </p>
+  </header>
+
+  @if (success(); as publication) {
+    <div class="alert alert-success" role="status" data-testid="success-panel">
+      <h2>Publicación registrada</h2>
+      <p>
+        El objeto perdido se registró correctamente. Identificador:
+        <code>{{ publication.id }}</code>
+      </p>
+    </div>
+  }
+
+  @if (errorMessage(); as message) {
+    <div class="alert alert-error" role="alert" data-testid="error-panel">
+      {{ message }}
+    </div>
+  }
+
+  <form class="publication-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="field">
+      <label for="title">Título</label>
+      <input
+        id="title"
+        type="text"
+        formControlName="title"
+        maxlength="120"
+        autocomplete="off"
+        aria-describedby="title-error"
+        [attr.aria-invalid]="form.controls.title.touched && form.controls.title.invalid"
+      />
+      @if (fieldError('title'); as serverError) {
+        <p class="field-error" id="title-error">{{ serverError }}</p>
+      } @else if (form.controls.title.touched && form.controls.title.hasError('required')) {
+        <p class="field-error" id="title-error">El título es obligatorio.</p>
+      } @else if (form.controls.title.touched && form.controls.title.hasError('minlength')) {
+        <p class="field-error" id="title-error">El título debe tener al menos 3 caracteres.</p>
+      } @else if (form.controls.title.touched && form.controls.title.hasError('maxlength')) {
+        <p class="field-error" id="title-error">El título no puede superar los 120 caracteres.</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="description">Descripción</label>
+      <textarea
+        id="description"
+        formControlName="description"
+        rows="4"
+        maxlength="1000"
+        aria-describedby="description-error"
+        [attr.aria-invalid]="form.controls.description.touched && form.controls.description.invalid"
+      ></textarea>
+      <p
+        class="character-counter"
+        data-testid="create-lost-description-counter"
+      >
+        {{ descriptionCount() }} / 1000
+      </p>
+      @if (fieldError('description'); as serverError) {
+        <p class="field-error" id="description-error">{{ serverError }}</p>
+      } @else if (form.controls.description.touched && form.controls.description.hasError('required')) {
+        <p class="field-error" id="description-error">La descripción es obligatoria.</p>
+      } @else if (form.controls.description.touched && form.controls.description.hasError('minlength')) {
+        <p class="field-error" id="description-error">La descripción debe tener al menos 10 caracteres.</p>
+      } @else if (form.controls.description.touched && form.controls.description.hasError('maxlength')) {
+        <p class="field-error" id="description-error">La descripción no puede superar los 1000 caracteres.</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="category">Categoría</label>
+      <select
+        id="category"
+        formControlName="category"
+        aria-describedby="category-error"
+        [attr.aria-invalid]="form.controls.category.touched && form.controls.category.invalid"
+      >
+        <option value="">Seleccioná una categoría</option>
+        @for (category of categories; track category) {
+          <option [value]="category">{{ categoryLabels[category] }}</option>
+        }
+      </select>
+      @if (fieldError('category'); as serverError) {
+        <p class="field-error" id="category-error">{{ serverError }}</p>
+      } @else if (form.controls.category.touched && form.controls.category.invalid) {
+        <p class="field-error" id="category-error">Seleccioná una categoría válida.</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="location">Ubicación</label>
+      <input
+        id="location"
+        type="text"
+        formControlName="location"
+        maxlength="120"
+        autocomplete="off"
+        aria-describedby="location-error"
+        [attr.aria-invalid]="form.controls.location.touched && form.controls.location.invalid"
+      />
+      @if (fieldError('location'); as serverError) {
+        <p class="field-error" id="location-error">{{ serverError }}</p>
+      } @else if (form.controls.location.touched && form.controls.location.hasError('required')) {
+        <p class="field-error" id="location-error">La ubicación es obligatoria.</p>
+      } @else if (form.controls.location.touched && form.controls.location.hasError('minlength')) {
+        <p class="field-error" id="location-error">La ubicación debe tener al menos 3 caracteres.</p>
+      } @else if (form.controls.location.touched && form.controls.location.hasError('maxlength')) {
+        <p class="field-error" id="location-error">La ubicación no puede superar los 120 caracteres.</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="eventDate">Fecha del evento</label>
+      <input
+        id="eventDate"
+        type="date"
+        formControlName="eventDate"
+        [max]="today"
+        aria-describedby="eventDate-error"
+        [attr.aria-invalid]="form.controls.eventDate.touched && form.controls.eventDate.invalid"
+      />
+      @if (fieldError('eventDate'); as serverError) {
+        <p class="field-error" id="eventDate-error">{{ serverError }}</p>
+      } @else if (form.controls.eventDate.touched && form.controls.eventDate.hasError('required')) {
+        <p class="field-error" id="eventDate-error">La fecha del evento es obligatoria.</p>
+      } @else if (form.controls.eventDate.touched && form.controls.eventDate.hasError('eventDate')) {
+        <p class="field-error" id="eventDate-error">Ingresá una fecha válida que no sea futura.</p>
+      }
+    </div>
+
+    <button type="submit" class="submit" [disabled]="submitting()">
+      {{ submitting() ? 'Registrando…' : 'Registrar objeto perdido' }}
+    </button>
+  </form>
+</section>

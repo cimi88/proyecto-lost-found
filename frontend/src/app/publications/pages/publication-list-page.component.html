@@ -1,0 +1,216 @@
+<section class="page">
+  <header class="page-header">
+    <p class="eyebrow">Lost &amp; Found</p>
+    <h1>Buscar objetos</h1>
+    <p class="subtitle">
+      Consultá las publicaciones activas de objetos perdidos y encontrados.
+    </p>
+  </header>
+
+  <form class="search-form" (submit)="submit($event)" novalidate>
+    <div class="field">
+      <label for="publication-search">Buscar publicaciones</label>
+      <input
+        id="publication-search"
+        type="search"
+        [formControl]="searchControl"
+        maxlength="100"
+        autocomplete="off"
+        placeholder="Título, descripción o ubicación"
+        aria-describedby="publication-search-hint"
+      />
+      <p class="hint" id="publication-search-hint">
+        Buscá por título, descripción o ubicación.
+      </p>
+    </div>
+
+    <div class="filter-grid">
+      <div class="field">
+        <label for="publication-type">Tipo</label>
+        <select
+          id="publication-type"
+          [formControl]="typeControl"
+          data-testid="type-filter"
+        >
+          <option value="">Todos</option>
+          @for (option of typeOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="publication-category">Categoría</label>
+        <select
+          id="publication-category"
+          [formControl]="categoryControl"
+          data-testid="category-filter"
+        >
+          <option value="">Todas</option>
+          @for (option of categoryOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="publication-date-from">Desde</label>
+        <input
+          id="publication-date-from"
+          type="date"
+          [formControl]="eventDateFromControl"
+          data-testid="event-date-from"
+        />
+      </div>
+
+      <div class="field">
+        <label for="publication-date-to">Hasta</label>
+        <input
+          id="publication-date-to"
+          type="date"
+          [formControl]="eventDateToControl"
+          data-testid="event-date-to"
+        />
+      </div>
+
+      <div class="field">
+        <label for="publication-sort">Ordenar por</label>
+        <select
+          id="publication-sort"
+          [formControl]="sortControl"
+          data-testid="sort-select"
+          aria-describedby="publication-sort-hint"
+        >
+          @for (option of sortOptions; track option.value) {
+            <option
+              [value]="option.value"
+              [disabled]="option.value === 'relevance' && !hasSearchTerm()"
+            >
+              {{ option.label }}
+            </option>
+          }
+        </select>
+        <p class="hint" id="publication-sort-hint">
+          La relevancia requiere un término de búsqueda.
+        </p>
+      </div>
+    </div>
+
+    <div class="search-actions">
+      <button type="submit" data-testid="search-button">Buscar</button>
+      <button
+        type="button"
+        class="secondary"
+        data-testid="clear-button"
+        (click)="clear()"
+      >
+        Limpiar
+      </button>
+    </div>
+  </form>
+
+  @if (formError(); as message) {
+    <div class="alert alert-error" role="alert" data-testid="form-error">
+      <p>{{ message }}</p>
+    </div>
+  }
+
+  @if (loading()) {
+    <p class="status" role="status" data-testid="loading">
+      Cargando publicaciones…
+    </p>
+  } @else if (errorMessage(); as message) {
+    <div class="alert alert-error" role="alert" data-testid="error-panel">
+      <p>{{ message }}</p>
+      <button type="button" class="secondary" data-testid="retry-button" (click)="retry()">
+        Reintentar
+      </button>
+    </div>
+  } @else if (response(); as result) {
+    @if (result.items.length) {
+      <p class="results-count" data-testid="results-count">
+        {{
+          result.total === 1
+            ? '1 publicación encontrada'
+            : result.total + ' publicaciones encontradas'
+        }}
+      </p>
+
+      <ul class="results" data-testid="results">
+        @for (item of result.items; track item.id) {
+          <li class="card" [attr.data-testid]="'publication-' + item.id">
+            <div class="card-header">
+              <span class="type-badge" [class.type-found]="item.type === 'FOUND'">
+                {{ typeLabels[item.type] }}
+              </span>
+              <span class="category">{{ categoryLabels[item.category] }}</span>
+            </div>
+            <h2>{{ item.title }}</h2>
+            <p class="description">{{ item.description }}</p>
+            <dl class="meta">
+              <div>
+                <dt>Ubicación</dt>
+                <dd>{{ item.location }}</dd>
+              </div>
+              <div>
+                <dt>Fecha</dt>
+                <dd>
+                  <time [attr.datetime]="item.eventDate">{{ item.eventDate }}</time>
+                </dd>
+              </div>
+            </dl>
+            <a
+              class="detail-link"
+              [routerLink]="['/publications', item.id]"
+              queryParamsHandling="preserve"
+              [attr.data-testid]="'detail-link-' + item.id"
+            >
+              Ver detalle
+            </a>
+          </li>
+        }
+      </ul>
+    } @else {
+      <div class="status" data-testid="empty">
+        @if (query()) {
+          <p>No encontramos publicaciones para «{{ query() }}».</p>
+        } @else if (hasFilters()) {
+          <p>No encontramos publicaciones con los filtros seleccionados.</p>
+        } @else {
+          <p>Todavía no hay publicaciones activas.</p>
+        }
+        <p class="hint">Probá con otro término, ajustá los filtros o volvé a la primera página.</p>
+      </div>
+    }
+
+    @if (result.totalPages > 0) {
+      <nav
+        class="pagination"
+        data-testid="pagination"
+        aria-label="Paginación de publicaciones"
+      >
+        <button
+          type="button"
+          class="secondary"
+          data-testid="previous-page"
+          [disabled]="page() <= 1"
+          (click)="previousPage()"
+        >
+          Anterior
+        </button>
+        <span class="page-indicator" data-testid="page-indicator">
+          Página {{ page() }} de {{ result.totalPages }}
+        </span>
+        <button
+          type="button"
+          class="secondary"
+          data-testid="next-page"
+          [disabled]="page() >= result.totalPages"
+          (click)="nextPage()"
+        >
+          Siguiente
+        </button>
+      </nav>
+    }
+  }
+</section>

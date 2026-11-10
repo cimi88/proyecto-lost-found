@@ -1,0 +1,148 @@
+<section class="page">
+  <header class="page-header">
+    <p class="eyebrow">Lost &amp; Found</p>
+    <h1>Editar publicación</h1>
+    <p class="subtitle">
+      Actualizá los datos de tu publicación. Solo las publicaciones activas
+      pueden editarse.
+    </p>
+  </header>
+
+  @if (loading()) {
+    <p class="status" role="status" data-testid="edit-publication-loading">
+      Cargando publicación…
+    </p>
+  } @else if (notFound()) {
+    <div class="alert alert-error" role="alert" data-testid="edit-publication-not-found">
+      <p>La publicación no existe o no pertenece a tu cuenta.</p>
+      <a routerLink="/my-publications">Volver a mis publicaciones</a>
+    </div>
+  } @else if (notEditable()) {
+    <div class="alert alert-error" role="alert" data-testid="edit-publication-not-editable">
+      <p>Solo se pueden editar publicaciones activas.</p>
+      <a [routerLink]="['/my-publications', publicationId()]">
+        Volver al detalle
+      </a>
+    </div>
+  } @else if (loadError(); as message) {
+    <div class="alert alert-error" role="alert" data-testid="edit-publication-error">
+      <p>{{ message }}</p>
+      <a [routerLink]="['/my-publications', publicationId()]">
+        Volver al detalle
+      </a>
+    </div>
+  } @else {
+    @if (errorMessage(); as message) {
+      <div class="alert alert-error" role="alert" data-testid="edit-publication-form-error">
+        {{ message }}
+      </div>
+    }
+
+    <form class="publication-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="field">
+        <label for="edit-title">Título</label>
+        <input
+          id="edit-title"
+          type="text"
+          formControlName="title"
+          maxlength="120"
+          autocomplete="off"
+          data-testid="edit-title"
+          [attr.aria-invalid]="form.controls.title.touched && form.controls.title.invalid"
+        />
+        @if (fieldError('title'); as serverError) {
+          <p class="field-error">{{ serverError }}</p>
+        } @else if (form.controls.title.touched && form.controls.title.invalid) {
+          <p class="field-error">El título debe tener entre 3 y 120 caracteres.</p>
+        }
+      </div>
+
+      <div class="field">
+        <label for="edit-description">Descripción</label>
+        <textarea
+          id="edit-description"
+          formControlName="description"
+          rows="4"
+          maxlength="1000"
+          data-testid="edit-description"
+          [attr.aria-invalid]="form.controls.description.touched && form.controls.description.invalid"
+        ></textarea>
+        <p
+          class="character-counter"
+          data-testid="edit-description-counter"
+        >
+          {{ descriptionCount() }} / 1000
+        </p>
+        @if (fieldError('description'); as serverError) {
+          <p class="field-error">{{ serverError }}</p>
+        } @else if (form.controls.description.touched && form.controls.description.invalid) {
+          <p class="field-error">La descripción debe tener entre 10 y 1000 caracteres.</p>
+        }
+      </div>
+
+      <div class="field">
+        <label for="edit-category">Categoría</label>
+        <select
+          id="edit-category"
+          formControlName="category"
+          data-testid="edit-category"
+          [attr.aria-invalid]="form.controls.category.touched && form.controls.category.invalid"
+        >
+          <option value="">Seleccioná una categoría</option>
+          @for (category of categories; track category) {
+            <option [value]="category">{{ categoryLabels[category] }}</option>
+          }
+        </select>
+        @if (fieldError('category'); as serverError) {
+          <p class="field-error">{{ serverError }}</p>
+        } @else if (form.controls.category.touched && form.controls.category.invalid) {
+          <p class="field-error">Seleccioná una categoría válida.</p>
+        }
+      </div>
+
+      <div class="field">
+        <label for="edit-location">Ubicación</label>
+        <input
+          id="edit-location"
+          type="text"
+          formControlName="location"
+          maxlength="120"
+          autocomplete="off"
+          data-testid="edit-location"
+          [attr.aria-invalid]="form.controls.location.touched && form.controls.location.invalid"
+        />
+        @if (fieldError('location'); as serverError) {
+          <p class="field-error">{{ serverError }}</p>
+        } @else if (form.controls.location.touched && form.controls.location.invalid) {
+          <p class="field-error">La ubicación debe tener entre 3 y 120 caracteres.</p>
+        }
+      </div>
+
+      <div class="field">
+        <label for="edit-event-date">Fecha del evento</label>
+        <input
+          id="edit-event-date"
+          type="date"
+          formControlName="eventDate"
+          [max]="today"
+          data-testid="edit-event-date"
+          [attr.aria-invalid]="form.controls.eventDate.touched && form.controls.eventDate.invalid"
+        />
+        @if (fieldError('eventDate'); as serverError) {
+          <p class="field-error">{{ serverError }}</p>
+        } @else if (form.controls.eventDate.touched && form.controls.eventDate.invalid) {
+          <p class="field-error">Ingresá una fecha válida que no sea futura.</p>
+        }
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="submit" [disabled]="submitting()">
+          {{ submitting() ? 'Guardando…' : 'Guardar cambios' }}
+        </button>
+        <a class="secondary-button" [routerLink]="['/my-publications', publicationId()]">
+          Cancelar
+        </a>
+      </div>
+    </form>
+  }
+</section>
