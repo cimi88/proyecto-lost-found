@@ -65,5 +65,11 @@ Desktop.ini
 
 # Configuración local
 
+# Tooling local de agentes
+.atl/
+
+# Experimentos locales no incluidos en la entrega
+ai-service/experiments/
+
 # Varios
 *.local
